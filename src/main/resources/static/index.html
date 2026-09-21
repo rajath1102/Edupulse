@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduPulse — Adaptive Student Intelligence Platform</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       SIDEBAR NAVIGATION
+       Each nav-item carries data-section="<id>" so that
+       app.js can switch sections without a page reload.
+  ====================================================== -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-logo">
+      <h1>⚡ EduPulse</h1>
+      <p>Adaptive Student Intelligence Platform</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Main Menu</div>
+
+      <a class="nav-item active" data-section="dashboard" href="#">
+        <span class="nav-icon">▦</span> Dashboard
+      </a>
+      <a class="nav-item" data-section="students" href="#">
+        <span class="nav-icon">👤</span> Students
+      </a>
+      <a class="nav-item" data-section="analytics" href="#">
+        <span class="nav-icon">📈</span> Analytics
+      </a>
+      <a class="nav-item" data-section="ai-advisor" href="#">
+        <span class="nav-icon">✦</span> AI Advisor
+      </a>
+
+      <div class="nav-section-title">Info</div>
+      <a class="nav-item" data-section="settings" href="#">
+        <span class="nav-icon">⚙</span> Settings
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span><span class="status-dot"></span>Backend Connected</span>
+      <span style="margin-top:4px;">Spring Boot · MySQL</span>
+    </div>
+
+  </aside>
+
+  <!-- =====================================================
+       MAIN CONTENT
+  ====================================================== -->
+  <div class="main-content">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-title" id="topbar-title">📊 Student Performance Dashboard</div>
+      <div class="topbar-meta">
+        <span class="badge-api">✓ API Live</span>
+        <span class="topbar-time" id="topbar-time">Loading…</span>
+      </div>
+    </header>
+
+    <!-- Page Body -->
+    <main class="page">
+
+      <!-- ================================================
+           SECTION: DASHBOARD
+           Shows overview cards + student selector + analytics
+      ================================================= -->
+      <section id="section-dashboard" class="page-section">
+
+        <!-- Overview Cards -->
+        <div class="section-header">
+          <h2>Platform Overview</h2>
+          <p>Real-time statistics calculated from your backend data</p>
+        </div>
+
+        <div class="stats-grid">
+
+          <div class="stat-card">
+            <div class="stat-icon blue">👥</div>
+            <div class="stat-body">
+              <div class="stat-label">Total Students</div>
+              <div class="stat-value" id="stat-total">
+                <span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+              </div>
+              <div class="stat-sub">Registered learners</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green">📊</div>
+            <div class="stat-body">
+              <div class="stat-label">Avg Performance</div>
+              <div class="stat-value" id="stat-avg-marks">
+                <span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+              </div>
+              <div class="stat-sub">Average marks across all students</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon orange">⚠</div>
+            <div class="stat-body">
+              <div class="stat-label">At-Risk Students</div>
+              <div class="stat-value" id="stat-at-risk">
+                <span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+              </div>
+              <div class="stat-sub">HIGH risk level detected</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon purple">📅</div>
+            <div class="stat-body">
+              <div class="stat-label">Avg Attendance</div>
+              <div class="stat-value" id="stat-avg-attendance">
+                <span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+              </div>
+              <div class="stat-sub">Across all enrolled students</div>
+            </div>
+          </div>
+
+        </div><!-- /stats-grid -->
+
+        <!-- Student Selector + Analytics -->
+        <div class="section-header">
+          <h2>Student Analytics</h2>
+          <p>Select a student to view their personalised performance report</p>
+        </div>
+
+        <div class="panel-grid">
+
+          <!-- Left: Student Selector Card -->
+          <div class="card selector-panel">
+            <div class="card-header">
+              <h3>👤 Select Student</h3>
+            </div>
+            <div class="card-body">
+
+              <div class="select-wrapper">
+                <select id="student-select">
+                  <option value="">Loading students…</option>
+                </select>
+              </div>
+
+              <div class="student-mini-card" id="student-mini">
+                <div class="student-mini-name" id="mini-name">—</div>
+                <div class="student-mini-meta" id="mini-meta">—</div>
+              </div>
+
+              <div class="divider" style="margin:20px 0 16px;"></div>
+
+              <p class="text-sm text-muted">
+                Students are loaded live from <code>/api/students</code>.<br>
+                Select a name to fetch their analytics.
+              </p>
+
+            </div>
+          </div>
+
+          <!-- Right: Analytics Panel -->
+          <div class="card analytics-panel" id="analytics-panel">
+            <div class="card-header">
+              <h3>📈 Performance Analytics</h3>
+              <span id="risk-badge" class="risk-badge hidden">—</span>
+            </div>
+            <div class="card-body">
+
+              <div class="analytics-placeholder" id="analytics-placeholder">
+                <div class="placeholder-icon">📊</div>
+                <p>Select a student from the left panel<br>to view their analytics report.</p>
+              </div>
+
+              <div id="analytics-content" class="hidden">
+
+                <div class="analytics-section">
+                  <div class="analytics-section-title">📌 Key Metrics</div>
+                  <div class="metrics-row">
+                    <div class="metric-box">
+                      <div class="metric-val" id="metric-marks">—</div>
+                      <div class="metric-lbl">Avg Marks</div>
+                    </div>
+                    <div class="metric-box">
+                      <div class="metric-val" id="metric-attendance" style="color:var(--success)">—</div>
+                      <div class="metric-lbl">Avg Attendance</div>
+                    </div>
+                    <div class="metric-box">
+                      <div class="metric-val" id="metric-subjects" style="color:var(--accent)">—</div>
+                      <div class="metric-lbl">Total Subjects</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="analytics-section">
+                  <div class="analytics-section-title">📉 Progress Indicators</div>
+                  <div class="progress-row">
+                    <div class="progress-label">
+                      <span>Average Marks</span>
+                      <span id="pct-marks">—</span>
+                    </div>
+                    <div class="progress-bar">
+                      <div class="progress-fill marks" id="progress-marks" style="width:0%"></div>
+                    </div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-label">
+                      <span>Attendance Rate</span>
+                      <span id="pct-atten">—</span>
+                    </div>
+                    <div class="progress-bar">
+                      <div class="progress-fill attendance" id="progress-atten" style="width:0%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="analytics-section">
+                  <div class="analytics-section-title">⚠ Weak Subjects <span class="text-sm text-muted">(marks &lt; 50)</span></div>
+                  <div class="weak-subjects-list" id="weak-list"></div>
+                </div>
+
+              </div><!-- /analytics-content -->
+
+            </div>
+          </div><!-- /analytics-panel -->
+
+        </div><!-- /panel-grid -->
+
+        <!-- AI Study Plan (shown after student is selected) -->
+        <div class="ai-section hidden" id="ai-section">
+          <div class="divider"></div>
+          <div class="card">
+            <div class="card-header">
+              <h3>✦ AI-Powered Study Plan</h3>
+            </div>
+            <div class="card-body">
+              <div class="ai-generate-bar">
+                <p>
+                  Click the button to generate a personalised adaptive study plan for
+                  this student. The recommendation is computed by the backend using
+                  real performance data.
+                </p>
+                <button class="btn-ai" id="btn-ai">
+                  <span class="btn-icon">✦</span>
+                  Generate AI Study Plan
+                </button>
+              </div>
+              <div class="ai-result" id="ai-result">
+                <div class="ai-loading hidden" id="ai-loading">
+                  <div class="spinner"></div>
+                  Generating personalised study plan from backend…
+                </div>
+                <div class="ai-plan-card hidden" id="ai-plan-card">
+                  <div class="ai-plan-header">
+                    <h4>✦ Personalised AI Study Plan</h4>
+                    <span class="ai-source-badge" id="ai-source-badge">AI Advisor</span>
+                  </div>
+                  <div class="ai-plan-body">
+                    <pre class="ai-plan-text" id="ai-plan-text"></pre>
+                  </div>
+                </div>
+                <div class="error-box hidden" id="ai-error">
+                  Something went wrong while fetching the AI recommendation.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /ai-section -->
+
+      </section><!-- /section-dashboard -->
+
+      <!-- ================================================
+           SECTION: STUDENTS
+           Shows all students in a table, loaded from the API.
+      ================================================= -->
+      <section id="section-students" class="page-section hidden">
+
+        <div class="section-header">
+          <h2>All Students</h2>
+          <p>Loaded live from <code>GET /api/students</code></p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>👥 Registered Students</h3>
+            <span id="students-count-badge" class="badge-api" style="font-size:.75rem;">Loading…</span>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div id="students-table-wrap">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+      </section><!-- /section-students -->
+
+      <!-- ================================================
+           SECTION: ANALYTICS
+           Student selector + full analytics panel.
+           Shares the same state as Dashboard.
+      ================================================= -->
+      <section id="section-analytics" class="page-section hidden">
+
+        <div class="section-header">
+          <h2>Student Analytics</h2>
+          <p>Select a student to view their personalised performance report</p>
+        </div>
+
+        <div class="panel-grid">
+
+          <!-- Student Selector (mirrors Dashboard) -->
+          <div class="card selector-panel">
+            <div class="card-header">
+              <h3>👤 Select Student</h3>
+            </div>
+            <div class="card-body">
+              <div class="select-wrapper">
+                <select id="student-select-analytics">
+                  <option value="">Loading students…</option>
+                </select>
+              </div>
+              <div class="student-mini-card" id="student-mini-analytics">
+                <div class="student-mini-name" id="mini-name-analytics">—</div>
+                <div class="student-mini-meta" id="mini-meta-analytics">—</div>
+              </div>
+              <div class="divider" style="margin:20px 0 16px;"></div>
+              <p class="text-sm text-muted">
+                Select a student to load their analytics below.
+              </p>
+            </div>
+          </div>
+
+          <!-- Analytics Panel (mirrors Dashboard) -->
+          <div class="card analytics-panel" id="analytics-panel-2">
+            <div class="card-header">
+              <h3>📈 Performance Analytics</h3>
+              <span id="risk-badge-2" class="risk-badge hidden">—</span>
+            </div>
+            <div class="card-body">
+
+              <div class="analytics-placeholder" id="analytics-placeholder-2">
+                <div class="placeholder-icon">📊</div>
+                <p>Select a student from the left panel<br>to view their analytics report.</p>
+              </div>
+
+              <div id="analytics-content-2" class="hidden">
+
+                <div class="analytics-section">
+                  <div class="analytics-section-title">📌 Key Metrics</div>
+                  <div class="metrics-row">
+                    <div class="metric-box">
+                      <div class="metric-val" id="metric-marks-2">—</div>
+                      <div class="metric-lbl">Avg Marks</div>
+                    </div>
+                    <div class="metric-box">
+                      <div class="metric-val" id="metric-attendance-2" style="color:var(--success)">—</div>
+                      <div class="metric-lbl">Avg Attendance</div>
+                    </div>
+                    <div class="metric-box">
+                      <div class="metric-val" id="metric-subjects-2" style="color:var(--accent)">—</div>
+                      <div class="metric-lbl">Total Subjects</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="analytics-section">
+                  <div class="analytics-section-title">📉 Progress Indicators</div>
+                  <div class="progress-row">
+                    <div class="progress-label">
+                      <span>Average Marks</span>
+                      <span id="pct-marks-2">—</span>
+                    </div>
+                    <div class="progress-bar">
+                      <div class="progress-fill marks" id="progress-marks-2" style="width:0%"></div>
+                    </div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-label">
+                      <span>Attendance Rate</span>
+                      <span id="pct-atten-2">—</span>
+                    </div>
+                    <div class="progress-bar">
+                      <div class="progress-fill attendance" id="progress-atten-2" style="width:0%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="analytics-section">
+                  <div class="analytics-section-title">⚠ Weak Subjects <span class="text-sm text-muted">(marks &lt; 50)</span></div>
+                  <div class="weak-subjects-list" id="weak-list-2"></div>
+                </div>
+
+              </div><!-- /analytics-content-2 -->
+
+            </div>
+          </div><!-- /analytics-panel-2 -->
+
+        </div><!-- /panel-grid -->
+
+      </section><!-- /section-analytics -->
+
+      <!-- ================================================
+           SECTION: AI ADVISOR
+           Student selector + AI study plan generator.
+      ================================================= -->
+      <section id="section-ai-advisor" class="page-section hidden">
+
+        <div class="section-header">
+          <h2>AI Advisor</h2>
+          <p>Generate a personalised adaptive study plan using <code>POST /api/ai/recommendation/{studentId}</code></p>
+        </div>
+
+        <!-- Student Selector for AI section -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h3>👤 Select Student</h3>
+          </div>
+          <div class="card-body">
+            <div class="select-wrapper" style="max-width:360px;">
+              <select id="student-select-ai">
+                <option value="">Loading students…</option>
+              </select>
+            </div>
+            <div class="student-mini-card" id="student-mini-ai">
+              <div class="student-mini-name" id="mini-name-ai">—</div>
+              <div class="student-mini-meta" id="mini-meta-ai">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Plan Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3>✦ AI-Powered Study Plan</h3>
+          </div>
+          <div class="card-body">
+            <div class="ai-generate-bar">
+              <p>
+                Select a student above, then click the button to generate their
+                personalised adaptive study plan from the backend.
+              </p>
+              <button class="btn-ai" id="btn-ai-advisor">
+                <span class="btn-icon">✦</span>
+                Generate AI Study Plan
+              </button>
+            </div>
+            <div class="ai-result" id="ai-result-advisor">
+              <div class="ai-loading hidden" id="ai-loading-advisor">
+                <div class="spinner"></div>
+                Generating personalised study plan from backend…
+              </div>
+              <div class="ai-plan-card hidden" id="ai-plan-card-advisor">
+                <div class="ai-plan-header">
+                  <h4>✦ Personalised AI Study Plan</h4>
+                  <span class="ai-source-badge" id="ai-source-badge-advisor">AI Advisor</span>
+                </div>
+                <div class="ai-plan-body">
+                  <pre class="ai-plan-text" id="ai-plan-text-advisor"></pre>
+                </div>
+              </div>
+              <div class="error-box hidden" id="ai-error-advisor">
+                Something went wrong while fetching the AI recommendation.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section><!-- /section-ai-advisor -->
+
+      <!-- ================================================
+           SECTION: SETTINGS
+           Placeholder — no backend changes required.
+      ================================================= -->
+      <section id="section-settings" class="page-section hidden">
+
+        <div class="section-header">
+          <h2>Settings</h2>
+          <p>Application configuration and information</p>
+        </div>
+
+        <div class="settings-grid">
+
+          <div class="card">
+            <div class="card-header"><h3>⚙ Application Info</h3></div>
+            <div class="card-body">
+              <div class="settings-row">
+                <span class="settings-label">Application Name</span>
+                <span class="settings-value">EduPulse</span>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">Version</span>
+                <span class="settings-value">1.0.0</span>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">Backend</span>
+                <span class="settings-value">Spring Boot 3.3.4</span>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">Java Version</span>
+                <span class="settings-value">Java 17</span>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">Database</span>
+                <span class="settings-value">MySQL 8.0</span>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">ORM</span>
+                <span class="settings-value">Hibernate / Spring Data JPA</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>🔌 API Endpoints</h3></div>
+            <div class="card-body">
+              <div class="settings-row"><span class="settings-label">GET</span><code class="settings-value">/api/students</code></div>
+              <div class="settings-row"><span class="settings-label">GET</span><code class="settings-value">/api/students/{id}</code></div>
+              <div class="settings-row"><span class="settings-label">POST</span><code class="settings-value">/api/students</code></div>
+              <div class="settings-row"><span class="settings-label">PUT</span><code class="settings-value">/api/students/{id}</code></div>
+              <div class="settings-row"><span class="settings-label">DELETE</span><code class="settings-value">/api/students/{id}</code></div>
+              <div class="settings-row"><span class="settings-label">GET</span><code class="settings-value">/api/performance/student/{id}</code></div>
+              <div class="settings-row"><span class="settings-label">GET</span><code class="settings-value">/api/analysis/student/{id}</code></div>
+              <div class="settings-row"><span class="settings-label">POST</span><code class="settings-value">/api/ai/recommendation/{id}</code></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>✦ AI Configuration</h3></div>
+            <div class="card-body">
+              <div class="settings-row">
+                <span class="settings-label">AI Provider</span>
+                <span class="settings-value">Google Gemini 1.5 Flash</span>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">Fallback Mode</span>
+                <span class="settings-value">Rule-Based Adaptive Advisor</span>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">Key Config</span>
+                <span class="settings-value">Environment: GEMINI_API_KEY</span>
+              </div>
+              <div style="margin-top:14px;" class="no-weak" style="font-size:.8rem;">
+                AI key is optional. Rule-based advisor works without it.
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /settings-grid -->
+
+      </section><!-- /section-settings -->
+
+    </main><!-- /page -->
+
+  </div><!-- /main-content -->
+
+  <script src="/app.js"></script>
+</body>
+</html>

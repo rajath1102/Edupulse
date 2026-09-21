@@ -1,0 +1,24 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IDE files ###
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.DS_Store
+
+### Environment & Secrets ###
+.env
+*.env.local
+*.log
+
+### Temporary files ###
+tmp/
+temp/
