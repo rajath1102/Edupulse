@@ -22,3 +22,5 @@ target/
 ### Temporary files ###
 tmp/
 temp/
+frontend/node_modules/
+frontend/dist/
