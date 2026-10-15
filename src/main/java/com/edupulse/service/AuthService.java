@@ -51,19 +51,19 @@ public class AuthService {
             throw new BadRequestException("Email is already registered: " + request.getEmail());
         }
 
-        Role role = request.getRole() != null ? request.getRole() : Role.ROLE_STUDENT;
+        // Security: Public self-registration is strictly restricted to ROLE_STUDENT
+        // Administrator or Teacher accounts cannot be created via public registration
+        Role role = Role.ROLE_STUDENT;
 
         Student linkedStudent = null;
-        if (role == Role.ROLE_STUDENT) {
-            linkedStudent = studentRepository.findByEmail(request.getEmail()).orElse(null);
-            if (linkedStudent == null) {
-                String studentName = (request.getName() != null && !request.getName().isBlank())
-                        ? request.getName() : request.getUsername();
-                String course = (request.getCourse() != null && !request.getCourse().isBlank())
-                        ? request.getCourse() : "Computer Science";
-                Integer year = request.getYear() != null ? request.getYear() : 1;
-                linkedStudent = studentRepository.save(new Student(studentName, request.getEmail(), course, year));
-            }
+        linkedStudent = studentRepository.findByEmail(request.getEmail()).orElse(null);
+        if (linkedStudent == null) {
+            String studentName = (request.getName() != null && !request.getName().isBlank())
+                    ? request.getName() : request.getUsername();
+            String course = (request.getCourse() != null && !request.getCourse().isBlank())
+                    ? request.getCourse() : "Computer Science";
+            Integer year = request.getYear() != null ? request.getYear() : 1;
+            linkedStudent = studentRepository.save(new Student(studentName, request.getEmail(), course, year));
         }
 
         User user = new User(
