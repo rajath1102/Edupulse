@@ -94,6 +94,32 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handle Authentication failure (Bad credentials) -> 401 UNAUTHORIZED
+     */
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(org.springframework.security.authentication.BadCredentialsException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                "Invalid username, email, or password"
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Handle Access Denied (insufficient role privileges) -> 403 FORBIDDEN
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(org.springframework.security.access.AccessDeniedException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                "Access Denied: You do not possess the required role permissions for this resource."
+        );
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    /**
      * Handle any other unhandled server error -> 500 INTERNAL_SERVER_ERROR
      */
     @ExceptionHandler(Exception.class)

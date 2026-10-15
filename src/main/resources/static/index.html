@@ -58,6 +58,12 @@
     <header class="topbar">
       <div class="topbar-title" id="topbar-title">📊 Student Performance Dashboard</div>
       <div class="topbar-meta">
+        <span class="badge-api" id="auth-role-badge" style="background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;">🔒 Authenticating...</span>
+        <select id="auth-role-switcher" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.75rem; background: var(--bg); color: var(--text-primary); cursor: pointer;" title="Switch Demo JWT Account">
+          <option value="teacher">Role: TEACHER (teacher123)</option>
+          <option value="admin">Role: ADMIN (admin123)</option>
+          <option value="student">Role: STUDENT (student123)</option>
+        </select>
         <span class="badge-api">✓ API Live</span>
         <span class="topbar-time" id="topbar-time">Loading…</span>
       </div>

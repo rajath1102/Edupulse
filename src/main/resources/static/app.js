@@ -13,43 +13,72 @@
 'use strict';
 
 // ============================================================
-// 1. API LAYER — Calls the existing Spring Boot backend only
+// 1. API LAYER — Calls the Spring Boot backend with JWT Auth
 // ============================================================
 
 const API_BASE = '';   // same origin as Spring Boot (localhost:8080)
 
 /**
- * Fetch all students.
+ * Return authorization headers with JWT Bearer token if available.
+ */
+function getAuthHeaders(customHeaders = {}) {
+    const token = localStorage.getItem('edupulse_jwt');
+    const headers = { ...customHeaders };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+}
+
+/**
+ * Authenticate with the backend and store the JWT token.
+ * POST /api/auth/login
+ */
+async function apiLogin(usernameOrEmail, password) {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usernameOrEmail, password })
+    });
+    if (!res.ok) throw new Error(`Authentication failed (HTTP ${res.status})`);
+    const data = await res.json();
+    localStorage.setItem('edupulse_jwt', data.token);
+    localStorage.setItem('edupulse_user', JSON.stringify(data));
+    return data;
+}
+
+/**
+ * Fetch all students with JWT authorization.
  * GET /api/students
- * Returns: [{id, name, email, course, year}, ...]
  */
 async function apiGetAllStudents() {
-    const res = await fetch(`${API_BASE}/api/students`);
+    const res = await fetch(`${API_BASE}/api/students`, {
+        headers: getAuthHeaders()
+    });
     if (!res.ok) throw new Error(`Failed to load students (HTTP ${res.status})`);
     return res.json();
 }
 
 /**
- * Fetch analytics for a specific student.
+ * Fetch analytics for a specific student with JWT authorization.
  * GET /api/analysis/student/{studentId}
- * Returns: {studentId, studentName, averageMarks, weakSubjects,
- *           averageAttendance, riskLevel, totalSubjects}
  */
 async function apiGetAnalysis(studentId) {
-    const res = await fetch(`${API_BASE}/api/analysis/student/${studentId}`);
+    const res = await fetch(`${API_BASE}/api/analysis/student/${studentId}`, {
+        headers: getAuthHeaders()
+    });
     if (!res.ok) throw new Error(`Failed to load analytics (HTTP ${res.status})`);
     return res.json();
 }
 
 /**
- * Request an AI study plan for a student.
+ * Request an AI study plan for a student with JWT authorization.
  * POST /api/ai/recommendation/{studentId}
- * Returns: {studentId, studentName, riskLevel, averageMarks,
- *           averageAttendance, weakSubjects, recommendation, aiSource}
  */
 async function apiGetRecommendation(studentId) {
     const res = await fetch(`${API_BASE}/api/ai/recommendation/${studentId}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getAuthHeaders()
     });
     if (!res.ok) throw new Error(`AI recommendation failed (HTTP ${res.status})`);
     return res.json();
@@ -691,7 +720,54 @@ async function init() {
     // Show default placeholder
     renderAnalyticsPlaceholder();
 
-    // Load students from backend
+    // Setup JWT Authentication & Role Switcher
+    const roleBadge = document.getElementById('auth-role-badge');
+    const roleSwitcher = document.getElementById('auth-role-switcher');
+
+    async function setRole(roleName) {
+        const credentials = {
+            teacher: { user: 'teacher', pass: 'teacher123' },
+            admin:   { user: 'admin',   pass: 'admin123' },
+            student: { user: 'student', pass: 'student123' }
+        };
+
+        const cred = credentials[roleName] || credentials['teacher'];
+        try {
+            if (roleBadge) roleBadge.textContent = '🔒 Logging in...';
+            const authData = await apiLogin(cred.user, cred.pass);
+            if (roleBadge) {
+                const displayRole = authData.role ? authData.role.replace('ROLE_', '') : roleName.toUpperCase();
+                roleBadge.textContent = `👤 ${displayRole}: ${authData.username}`;
+                roleBadge.style.background = authData.role === 'ROLE_ADMIN' ? '#fef3c7' : (authData.role === 'ROLE_TEACHER' ? '#e0e7ff' : '#dcfce7');
+                roleBadge.style.color = authData.role === 'ROLE_ADMIN' ? '#92400e' : (authData.role === 'ROLE_TEACHER' ? '#4338ca' : '#166534');
+            }
+        } catch (e) {
+            console.warn('Auth auto-login notice:', e);
+            if (roleBadge) roleBadge.textContent = '🔒 Auth Ready';
+        }
+    }
+
+    if (roleSwitcher) {
+        roleSwitcher.addEventListener('change', async (e) => {
+            await setRole(e.target.value);
+            try {
+                const students = await apiGetAllStudents();
+                state.students = students;
+                renderAllDropdowns();
+                state.overviewLoaded = false;
+                renderOverviewStats(students);
+                if (state.currentSection === 'students') renderStudentsTable();
+            } catch (err) {
+                console.error('Refresh after role switch error:', err);
+            }
+        });
+    }
+
+    // Authenticate with initial selected role (default: TEACHER)
+    const initialRole = roleSwitcher ? roleSwitcher.value : 'teacher';
+    await setRole(initialRole);
+
+    // Load students from backend with JWT token
     try {
         const students = await apiGetAllStudents();
         state.students = students;
@@ -712,3 +788,4 @@ async function init() {
 
 // Boot the app when the DOM is ready
 document.addEventListener('DOMContentLoaded', init);
+

@@ -1,35 +1,47 @@
 package com.edupulse.config;
 
 import com.edupulse.model.Performance;
+import com.edupulse.model.Role;
 import com.edupulse.model.Student;
+import com.edupulse.model.User;
 import com.edupulse.repository.PerformanceRepository;
 import com.edupulse.repository.StudentRepository;
+import com.edupulse.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
 /**
  * Initializes realistic sample student and performance data on first startup.
- * Makes the application immediately demo-ready for college placement presentations.
+ * Seeds development demo user accounts (Admin, Teacher, Student) when app.demo.accounts.enabled is true.
  */
 @Configuration
 public class DataInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
+    @Value("${app.demo.accounts.enabled:true}")
+    private boolean demoAccountsEnabled;
+
     @Bean
     public CommandLineRunner initSampleData(StudentRepository studentRepository,
-                                            PerformanceRepository performanceRepository) {
+                                            PerformanceRepository performanceRepository,
+                                            UserRepository userRepository,
+                                            PasswordEncoder passwordEncoder) {
         return args -> {
+            Student john = null;
+
             if (studentRepository.count() == 0) {
-                logger.info("Database is empty. Seeding initial sample data for EduPulse...");
+                logger.info("Database is empty. Seeding initial sample student and performance data...");
 
                 // Student 1: John Doe (Moderate / Medium Risk student with a weak subject)
-                Student john = new Student("John Doe", "john.doe@example.com", "Computer Science", 3);
+                john = new Student("John Doe", "john.doe@example.com", "Computer Science", 3);
                 studentRepository.save(john);
 
                 Performance p1 = new Performance(john, "Data Structures & Algorithms", 45.0, 72.0); // Weak subject (< 50)
@@ -56,11 +68,44 @@ public class DataInitializer {
                 Performance p10 = new Performance(alex, "Digital Electronics", 48.0, 65.0); // Weak
                 performanceRepository.saveAll(List.of(p8, p9, p10));
 
-                logger.info("Sample data initialized successfully with 3 students and 10 performance records!");
+                logger.info("Sample academic data initialized successfully with 3 students and 10 performance records!");
             } else {
-                logger.info("Existing student data detected. Skipping sample data initialization.");
+                john = studentRepository.findByEmail("john.doe@example.com").orElse(null);
+                logger.info("Existing student records detected.");
+            }
+
+            // Seed development demo accounts if enabled and users table is empty
+            if (demoAccountsEnabled && userRepository.count() == 0) {
+                logger.info("Seeding development demo user accounts (Admin, Teacher, Student)...");
+
+                // 1. Admin account
+                User admin = new User(
+                        "admin",
+                        "admin@edupulse.com",
+                        passwordEncoder.encode("admin123"),
+                        Role.ROLE_ADMIN
+                );
+
+                // 2. Teacher account
+                User teacher = new User(
+                        "teacher",
+                        "teacher@edupulse.com",
+                        passwordEncoder.encode("teacher123"),
+                        Role.ROLE_TEACHER
+                );
+
+                // 3. Student account (linked to John Doe)
+                User studentUser = new User(
+                        "student",
+                        "student@edupulse.com",
+                        passwordEncoder.encode("student123"),
+                        Role.ROLE_STUDENT,
+                        john
+                );
+
+                userRepository.saveAll(List.of(admin, teacher, studentUser));
+                logger.info("Demo accounts ready: admin/admin123, teacher/teacher123, student/student123");
             }
         };
     }
 }
-
