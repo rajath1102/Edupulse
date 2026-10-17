@@ -143,10 +143,10 @@ export async function getPerformanceByStudentId(studentId) {
 }
 
 export async function addPerformance(studentId, performanceData) {
-  const res = await fetch(`${API_BASE}/api/performance/student/${studentId}`, {
+  const res = await fetch(`${API_BASE}/api/performance`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify(performanceData)
+    body: JSON.stringify({ studentId: Number(studentId), ...performanceData })
   });
   return handleResponse(res);
 }

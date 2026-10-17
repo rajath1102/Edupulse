@@ -38,6 +38,18 @@ public class PerformanceController {
     }
 
     /**
+     * POST /api/performance/student/{studentId} - Log a performance record for a specific student ID
+     */
+    @PostMapping("/student/{studentId}")
+    public ResponseEntity<PerformanceResponseDTO> addPerformanceForStudent(
+            @PathVariable Long studentId,
+            @RequestBody PerformanceRequestDTO dto) {
+        dto.setStudentId(studentId);
+        PerformanceResponseDTO response = performanceService.addPerformance(dto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    /**
      * GET /api/performance/student/{studentId} - Get all performance records for a student
      */
     @GetMapping("/student/{studentId}")
