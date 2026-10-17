@@ -7,7 +7,7 @@ import {
   Settings, 
   GraduationCap, 
   LogOut,
-  ShieldAlert,
+  ShieldCheck,
   UserCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -15,7 +15,15 @@ import { useAuth } from '../context/AuthContext';
 export default function Sidebar({ currentSection, onSelectSection, onOpenLoginModal }) {
   const { user, role, logout } = useAuth();
 
-  const navItems = [
+  const isStudent = role === 'ROLE_STUDENT';
+
+  const navItems = isStudent ? [
+    { id: 'dashboard', label: 'My Dashboard', icon: LayoutDashboard },
+    { id: 'students', label: 'My Academic Profile', icon: Users },
+    { id: 'analytics', label: 'My Analytics', icon: BarChart3 },
+    { id: 'ai-advisor', label: 'My AI Study Plan', icon: Sparkles },
+    { id: 'settings', label: 'Settings & Cloud', icon: Settings },
+  ] : [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'students', label: 'All Students', icon: Users },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -36,7 +44,9 @@ export default function Sidebar({ currentSection, onSelectSection, onOpenLoginMo
       </div>
 
       <nav className="sidebar-nav">
-        <div className="nav-section-title">Navigation</div>
+        <div className="nav-section-title">
+          {isStudent ? 'Student Portal' : 'Navigation'}
+        </div>
         {navItems.map(item => {
           const Icon = item.icon;
           const isActive = currentSection === item.id;
@@ -64,7 +74,7 @@ export default function Sidebar({ currentSection, onSelectSection, onOpenLoginMo
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  background: 'var(--primary)',
+                  background: isStudent ? 'var(--success)' : 'var(--primary)',
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
@@ -78,7 +88,7 @@ export default function Sidebar({ currentSection, onSelectSection, onOpenLoginMo
                   <div style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-primary)' }}>
                     {user.username}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '0.7rem', color: isStudent ? 'var(--success)' : 'var(--text-muted)', fontWeight: isStudent ? '600' : 'normal' }}>
                     {roleName}
                   </div>
                 </div>

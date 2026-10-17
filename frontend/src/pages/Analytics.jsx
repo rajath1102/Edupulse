@@ -6,11 +6,15 @@ import {
   CheckCircle, 
   TrendingUp, 
   BookOpen, 
-  Clock 
+  Clock,
+  GraduationCap
 } from 'lucide-react';
 import * as api from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Analytics({ students, selectedStudentId, onSelectStudent }) {
+  const { role } = useAuth();
+  const isStudent = role === 'ROLE_STUDENT';
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -62,40 +66,77 @@ export default function Analytics({ students, selectedStudentId, onSelectStudent
         {/* Left: Selector */}
         <div className="card selector-panel">
           <div className="card-header">
-            <h3><Users size={16} /> Choose Student</h3>
+            <h3>{isStudent ? <GraduationCap size={16} /> : <Users size={16} />} {isStudent ? 'My Analytics' : 'Choose Student'}</h3>
           </div>
           <div className="card-body">
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
-              Select student record
-            </label>
-            <div className="select-wrapper">
-              <select
-                value={selectedStudentId || ''}
-                onChange={e => onSelectStudent(e.target.value)}
-              >
-                <option value="">— Select a student —</option>
-                {students.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.course}, Year {s.year})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {selectedStudent && (
-              <div className="student-mini-card visible">
-                <div className="student-mini-name">{selectedStudent.name}</div>
-                <div className="student-mini-meta">
-                  <span>📚 {selectedStudent.course}</span>
-                  <span>🎓 Year {selectedStudent.year}</span>
-                  <div style={{ marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    ✉ {selectedStudent.email}
+            {isStudent ? (
+              /* STUDENT: Show locked profile card */
+              students.length > 0 && (() => {
+                const me = students[0];
+                return (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <span style={{
+                        fontSize: '0.7rem', fontWeight: '700', padding: '3px 10px',
+                        background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0',
+                        borderRadius: '100px', display: 'inline-flex', alignItems: 'center', gap: '4px'
+                      }}>
+                        🔒 Privacy Active
+                      </span>
+                    </div>
+                    <div className="student-mini-card visible">
+                      <div className="student-mini-name">{me.name}</div>
+                      <div className="student-mini-meta">
+                        <span>📚 {me.course}</span>
+                        <span>🎓 Year {me.year}</span>
+                        <div style={{ marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          ✉ {me.email}
+                        </div>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '12px', lineHeight: '1.5' }}>
+                      You are viewing your own academic performance. Contact your teacher for help.
+                    </p>
                   </div>
+                );
+              })()
+            ) : (
+              /* TEACHER / ADMIN: Full dropdown */
+              <>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Select student record
+                </label>
+                <div className="select-wrapper">
+                  <select
+                    value={selectedStudentId || ''}
+                    onChange={e => onSelectStudent(e.target.value)}
+                  >
+                    <option value="">— Select a student —</option>
+                    {students.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.course}, Year {s.year})
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+
+                {selectedStudent && (
+                  <div className="student-mini-card visible">
+                    <div className="student-mini-name">{selectedStudent.name}</div>
+                    <div className="student-mini-meta">
+                      <span>📚 {selectedStudent.course}</span>
+                      <span>🎓 Year {selectedStudent.year}</span>
+                      <div style={{ marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        ✉ {selectedStudent.email}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
+
 
         {/* Right: Analytics details */}
         <div className="card analytics-panel">

@@ -6,11 +6,15 @@ import {
   Lightbulb, 
   CheckCircle, 
   AlertCircle,
-  Cpu
+  Cpu,
+  GraduationCap
 } from 'lucide-react';
 import * as api from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function AiAdvisor({ students, selectedStudentId, onSelectStudent }) {
+  const { role } = useAuth();
+  const isStudent = role === 'ROLE_STUDENT';
   const [loading, setLoading] = useState(false);
   const [recommendation, setRecommendation] = useState(null);
   const [error, setError] = useState('');
@@ -46,41 +50,74 @@ export default function AiAdvisor({ students, selectedStudentId, onSelectStudent
         {/* Left: Student Selector */}
         <div className="card selector-panel">
           <div className="card-header">
-            <h3><Users size={16} /> Choose Student</h3>
+            <h3>{isStudent ? <GraduationCap size={16} /> : <Users size={16} />} {isStudent ? 'My AI Advisor' : 'Choose Student'}</h3>
           </div>
           <div className="card-body">
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
-              Select student
-            </label>
-            <div className="select-wrapper">
-              <select
-                value={selectedStudentId || ''}
-                onChange={e => {
-                  onSelectStudent(e.target.value);
-                  setRecommendation(null);
-                  setError('');
-                }}
-              >
-                <option value="">— Select a student —</option>
-                {students.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.course}, Year {s.year})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {selectedStudent && (
-              <div className="student-mini-card visible">
-                <div className="student-mini-name">{selectedStudent.name}</div>
-                <div className="student-mini-meta">
-                  <span>📚 {selectedStudent.course}</span>
-                  <span>🎓 Year {selectedStudent.year}</span>
-                  <div style={{ marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    ✉ {selectedStudent.email}
+            {isStudent ? (
+              /* STUDENT: Locked profile card */
+              students.length > 0 && (() => {
+                const me = students[0];
+                return (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <span style={{
+                        fontSize: '0.7rem', fontWeight: '700', padding: '3px 10px',
+                        background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0',
+                        borderRadius: '100px', display: 'inline-flex', alignItems: 'center', gap: '4px'
+                      }}>
+                        🔒 Privacy Active
+                      </span>
+                    </div>
+                    <div className="student-mini-card visible">
+                      <div className="student-mini-name">{me.name}</div>
+                      <div className="student-mini-meta">
+                        <span>📚 {me.course}</span>
+                        <span>🎓 Year {me.year}</span>
+                        <div style={{ marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          ✉ {me.email}
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                );
+              })()
+            ) : (
+              /* TEACHER / ADMIN: Dropdown */
+              <>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Select student
+                </label>
+                <div className="select-wrapper">
+                  <select
+                    value={selectedStudentId || ''}
+                    onChange={e => {
+                      onSelectStudent(e.target.value);
+                      setRecommendation(null);
+                      setError('');
+                    }}
+                  >
+                    <option value="">— Select a student —</option>
+                    {students.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.course}, Year {s.year})
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+
+                {selectedStudent && (
+                  <div className="student-mini-card visible">
+                    <div className="student-mini-name">{selectedStudent.name}</div>
+                    <div className="student-mini-meta">
+                      <span>📚 {selectedStudent.course}</span>
+                      <span>🎓 Year {selectedStudent.year}</span>
+                      <div style={{ marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        ✉ {selectedStudent.email}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             <div style={{ marginTop: '20px' }}>

@@ -19,13 +19,20 @@ function MainApp() {
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
+  const isStudent = role === 'ROLE_STUDENT';
+  const myStudentId = user?.studentId;
+
   // Load students from Spring Boot REST API
   async function loadStudents() {
     setLoadingStudents(true);
     try {
       const data = await api.getAllStudents();
       setStudents(data || []);
-      if (data && data.length > 0 && !selectedStudentId) {
+      
+      // Auto-select student based on role
+      if (isStudent && myStudentId) {
+        setSelectedStudentId(String(myStudentId));
+      } else if (data && data.length > 0 && !selectedStudentId) {
         setSelectedStudentId(String(data[0].id));
       }
     } catch (err) {
@@ -40,6 +47,13 @@ function MainApp() {
     loadStudents();
   }, [user, role]);
 
+  // Ensure student selection is locked to the logged-in student when in student role
+  useEffect(() => {
+    if (isStudent && myStudentId) {
+      setSelectedStudentId(String(myStudentId));
+    }
+  }, [isStudent, myStudentId]);
+
   function handleStudentAdded(newStudent) {
     setStudents(prev => [newStudent, ...prev]);
     setSelectedStudentId(String(newStudent.id));
@@ -49,6 +63,16 @@ function MainApp() {
     setSelectedStudentId(String(studentId));
     setCurrentSection('ai-advisor');
   }
+
+  // STUDENT PRIVACY FILTER:
+  // If the user is logged in as a student, filter the list so they ONLY see their personal record!
+  const visibleStudents = (isStudent && myStudentId)
+    ? students.filter(s => s.id === Number(myStudentId))
+    : students;
+
+  const effectiveSelectedId = (isStudent && myStudentId)
+    ? String(myStudentId)
+    : selectedStudentId;
 
   return (
     <div className="app-container">
@@ -67,8 +91,8 @@ function MainApp() {
         <main className="page">
           {currentSection === 'dashboard' && (
             <Dashboard
-              students={students}
-              selectedStudentId={selectedStudentId}
+              students={visibleStudents}
+              selectedStudentId={effectiveSelectedId}
               onSelectStudent={setSelectedStudentId}
               onRefreshStudents={loadStudents}
             />
@@ -76,7 +100,7 @@ function MainApp() {
 
           {currentSection === 'students' && (
             <Students
-              students={students}
+              students={visibleStudents}
               onStudentAdded={handleStudentAdded}
               onSelectStudent={(id) => {
                 setSelectedStudentId(String(id));
@@ -88,16 +112,16 @@ function MainApp() {
 
           {currentSection === 'analytics' && (
             <Analytics
-              students={students}
-              selectedStudentId={selectedStudentId}
+              students={visibleStudents}
+              selectedStudentId={effectiveSelectedId}
               onSelectStudent={setSelectedStudentId}
             />
           )}
 
           {currentSection === 'ai-advisor' && (
             <AiAdvisor
-              students={students}
-              selectedStudentId={selectedStudentId}
+              students={visibleStudents}
+              selectedStudentId={effectiveSelectedId}
               onSelectStudent={setSelectedStudentId}
             />
           )}

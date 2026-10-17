@@ -20,7 +20,8 @@ export default function Students({
   onSelectStudent, 
   onNavigateToAi 
 }) {
-  const { isTeacherOrAdmin } = useAuth();
+  const { isTeacherOrAdmin, role } = useAuth();
+  const isStudent = role === 'ROLE_STUDENT';
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('ALL');
 
@@ -44,8 +45,8 @@ export default function Students({
     <div className="students-page">
       <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Student Academic Directory</h2>
-          <p>Browse student profiles, enroll new students, and log performance scores</p>
+          <h2>{isStudent ? 'My Academic Profile' : 'Student Academic Directory'}</h2>
+          <p>{isStudent ? 'View your enrolled profile, major, and direct access to your risk analytics and AI study plans' : 'Browse student profiles, enroll new students, and log performance scores'}</p>
         </div>
         {isTeacherOrAdmin && (
           <button
@@ -70,7 +71,8 @@ export default function Students({
         )}
       </div>
 
-      {/* Filters and search */}
+      {/* Filters and search - only relevant for teachers and admins */}
+      {!isStudent && (
       <div style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',
@@ -124,6 +126,7 @@ export default function Students({
           </span>
         </div>
       </div>
+      )}
 
       {/* Students Table */}
       <div className="card">
