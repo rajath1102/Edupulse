@@ -48,7 +48,7 @@ export default function Topbar({ currentSection, onOpenLoginModal }) {
             Demo Role:
           </span>
           <select
-            value={roleName.toLowerCase()}
+            value={user?.username || roleName.toLowerCase()}
             onChange={(e) => quickLogin(e.target.value)}
             style={{
               padding: '4px 10px',
@@ -62,9 +62,15 @@ export default function Topbar({ currentSection, onOpenLoginModal }) {
             }}
             title="Switch demo JWT account instantly"
           >
-            <option value="teacher">Teacher (teacher123)</option>
-            <option value="admin">Admin (admin123)</option>
-            <option value="student">Student (student123)</option>
+            <optgroup label="Faculty & Staff">
+              <option value="teacher">Teacher (teacher123)</option>
+              <option value="admin">Admin (admin123)</option>
+            </optgroup>
+            <optgroup label="Student Accounts (Privacy Mode)">
+              <option value="student">Student: John Doe</option>
+              <option value="jane">Student: Jane Smith</option>
+              <option value="alex">Student: Alex Rivera</option>
+            </optgroup>
           </select>
         </div>
 

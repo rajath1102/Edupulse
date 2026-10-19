@@ -47,12 +47,15 @@ function MainApp() {
     loadStudents();
   }, [user, role]);
 
-  // Ensure student selection is locked to the logged-in student when in student role
+  // Ensure student selection is locked to the logged-in student when in student role,
+  // or defaults to first available student if switching to teacher/admin
   useEffect(() => {
     if (isStudent && myStudentId) {
       setSelectedStudentId(String(myStudentId));
+    } else if (!isStudent && students.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(String(students[0].id));
     }
-  }, [isStudent, myStudentId]);
+  }, [isStudent, myStudentId, students]);
 
   function handleStudentAdded(newStudent) {
     setStudents(prev => [newStudent, ...prev]);

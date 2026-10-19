@@ -7,10 +7,14 @@ import {
   TrendingUp, 
   BookOpen, 
   Clock,
-  GraduationCap
+  GraduationCap,
+  FileText,
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import * as api from '../api';
 import { useAuth } from '../context/AuthContext';
+import { exportStudentPdf, exportStudentCsv } from '../utils/exportReport';
 
 export default function Analytics({ students, selectedStudentId, onSelectStudent }) {
   const { role } = useAuth();
@@ -19,8 +23,62 @@ export default function Analytics({ students, selectedStudentId, onSelectStudent
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [performances, setPerformances] = useState([]);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isExportingCsv, setIsExportingCsv] = useState(false);
+  const [exportNotice, setExportNotice] = useState({ text: '', type: '' });
 
   const selectedStudent = students.find(s => s.id === Number(selectedStudentId));
+
+  async function handleDownloadPdf() {
+    if (!selectedStudent) {
+      setExportNotice({ text: 'Please choose a student record first.', type: 'warning' });
+      return;
+    }
+    setIsExportingPdf(true);
+    setExportNotice({ text: '', type: '' });
+    try {
+      let aiRec = null;
+      try {
+        aiRec = await api.getAiRecommendation(selectedStudent.id);
+      } catch (aiErr) {
+        console.info('AI recommendation not yet generated for student PDF:', aiErr);
+      }
+
+      exportStudentPdf({
+        student: selectedStudent,
+        analysis,
+        performances,
+        aiRecommendation: aiRec
+      });
+      setExportNotice({ text: `✓ Academic report for ${selectedStudent.name} downloaded!`, type: 'success' });
+      setTimeout(() => setExportNotice({ text: '', type: '' }), 5000);
+    } catch (err) {
+      setExportNotice({ text: err.message || 'Failed to generate PDF report.', type: 'error' });
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }
+
+  function handleDownloadCsv() {
+    if (!selectedStudent) {
+      setExportNotice({ text: 'Please choose a student record first.', type: 'warning' });
+      return;
+    }
+    setIsExportingCsv(true);
+    setExportNotice({ text: '', type: '' });
+    try {
+      exportStudentCsv({
+        student: selectedStudent,
+        performances
+      });
+      setExportNotice({ text: `✓ Subject performance CSV for ${selectedStudent.name} downloaded!`, type: 'success' });
+      setTimeout(() => setExportNotice({ text: '', type: '' }), 5000);
+    } catch (err) {
+      setExportNotice({ text: err.message || 'Failed to export CSV.', type: 'error' });
+    } finally {
+      setIsExportingCsv(false);
+    }
+  }
 
   useEffect(() => {
     if (!selectedStudentId) {
@@ -140,15 +198,94 @@ export default function Analytics({ students, selectedStudentId, onSelectStudent
 
         {/* Right: Analytics details */}
         <div className="card analytics-panel">
-          <div className="card-header">
-            <h3><BarChart3 size={16} /> Diagnostic Overview</h3>
-            {analysis && (
-              <span className={riskClass}>
-                {analysis.riskLevel} RISK
-              </span>
-            )}
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h3><BarChart3 size={16} /> Diagnostic Overview</h3>
+              {analysis && (
+                <span className={riskClass}>
+                  {analysis.riskLevel} RISK
+                </span>
+              )}
+            </div>
+
+            {/* Export Actions: PDF & CSV */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={handleDownloadPdf}
+                disabled={!selectedStudentId || loading || isExportingPdf}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.78rem',
+                  fontWeight: '600',
+                  border: '1px solid #c7d2fe',
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary)',
+                  cursor: (!selectedStudentId || loading || isExportingPdf) ? 'not-allowed' : 'pointer',
+                  opacity: (!selectedStudentId || loading || isExportingPdf) ? 0.6 : 1,
+                  transition: 'all 0.15s ease'
+                }}
+                title={!selectedStudentId ? 'Select a student to enable PDF download' : 'Download comprehensive PDF report'}
+              >
+                {isExportingPdf ? (
+                  <div className="spinner" style={{ width: '12px', height: '12px', borderWidth: '2px' }}></div>
+                ) : (
+                  <FileText size={13} />
+                )}
+                <span>{isExportingPdf ? 'Generating…' : 'Download PDF'}</span>
+              </button>
+
+              <button
+                onClick={handleDownloadCsv}
+                disabled={!selectedStudentId || loading || isExportingCsv}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.78rem',
+                  fontWeight: '600',
+                  border: '1px solid var(--border)',
+                  background: 'var(--surface)',
+                  color: 'var(--text-secondary)',
+                  cursor: (!selectedStudentId || loading || isExportingCsv) ? 'not-allowed' : 'pointer',
+                  opacity: (!selectedStudentId || loading || isExportingCsv) ? 0.6 : 1,
+                  transition: 'all 0.15s ease'
+                }}
+                title={!selectedStudentId ? 'Select a student to enable CSV download' : 'Download subject performance in CSV format'}
+              >
+                {isExportingCsv ? (
+                  <div className="spinner" style={{ width: '12px', height: '12px', borderWidth: '2px' }}></div>
+                ) : (
+                  <Download size={13} />
+                )}
+                <span>{isExportingCsv ? 'Exporting…' : 'Download CSV'}</span>
+              </button>
+            </div>
           </div>
           <div className="card-body">
+            {exportNotice.text && (
+              <div style={{
+                marginBottom: '16px',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                fontSize: '0.8rem',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: exportNotice.type === 'error' ? '#fee2e2' : (exportNotice.type === 'warning' ? '#fef3c7' : '#dcfce7'),
+                color: exportNotice.type === 'error' ? '#991b1b' : (exportNotice.type === 'warning' ? '#92400e' : '#166534'),
+                border: `1px solid ${exportNotice.type === 'error' ? '#fecaca' : (exportNotice.type === 'warning' ? '#fde68a' : '#bbf7d0')}`
+              }}>
+                {exportNotice.type === 'error' ? <AlertCircle size={15} /> : <CheckCircle size={15} />}
+                <span>{exportNotice.text}</span>
+              </div>
+            )}
             {!selectedStudentId ? (
               <div className="analytics-placeholder">
                 <div className="placeholder-icon">📈</div>

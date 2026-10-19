@@ -69,42 +69,37 @@ public class DataInitializer {
                 performanceRepository.saveAll(List.of(p8, p9, p10));
 
                 logger.info("Sample academic data initialized successfully with 3 students and 10 performance records!");
-            } else {
-                john = studentRepository.findByEmail("john.doe@example.com").orElse(null);
-                logger.info("Existing student records detected.");
             }
 
-            // Seed development demo accounts if enabled and users table is empty
-            if (demoAccountsEnabled && userRepository.count() == 0) {
-                logger.info("Seeding development demo user accounts (Admin, Teacher, Student)...");
+            if (john == null) {
+                john = studentRepository.findByEmail("john.doe@example.com").orElse(null);
+            }
+            Student jane = studentRepository.findByEmail("jane.smith@example.com").orElse(null);
+            Student alex = studentRepository.findByEmail("alex.brown@example.com")
+                    .or(() -> studentRepository.findByEmail("alex.rivera@example.com"))
+                    .orElse(null);
 
-                // 1. Admin account
-                User admin = new User(
-                        "admin",
-                        "admin@edupulse.com",
-                        passwordEncoder.encode("admin123"),
-                        Role.ROLE_ADMIN
-                );
+            // Seed development demo accounts if enabled
+            if (demoAccountsEnabled) {
+                logger.info("Verifying and seeding development demo user accounts...");
 
-                // 2. Teacher account
-                User teacher = new User(
-                        "teacher",
-                        "teacher@edupulse.com",
-                        passwordEncoder.encode("teacher123"),
-                        Role.ROLE_TEACHER
-                );
+                if (!userRepository.existsByUsername("admin")) {
+                    userRepository.save(new User("admin", "admin@edupulse.com", passwordEncoder.encode("admin123"), Role.ROLE_ADMIN));
+                }
+                if (!userRepository.existsByUsername("teacher")) {
+                    userRepository.save(new User("teacher", "teacher@edupulse.com", passwordEncoder.encode("teacher123"), Role.ROLE_TEACHER));
+                }
+                if (!userRepository.existsByUsername("student") && john != null) {
+                    userRepository.save(new User("student", "student@edupulse.com", passwordEncoder.encode("student123"), Role.ROLE_STUDENT, john));
+                }
+                if (!userRepository.existsByUsername("jane") && jane != null) {
+                    userRepository.save(new User("jane", "jane.smith@example.com", passwordEncoder.encode("student123"), Role.ROLE_STUDENT, jane));
+                }
+                if (!userRepository.existsByUsername("alex") && alex != null) {
+                    userRepository.save(new User("alex", "alex.rivera@example.com", passwordEncoder.encode("student123"), Role.ROLE_STUDENT, alex));
+                }
 
-                // 3. Student account (linked to John Doe)
-                User studentUser = new User(
-                        "student",
-                        "student@edupulse.com",
-                        passwordEncoder.encode("student123"),
-                        Role.ROLE_STUDENT,
-                        john
-                );
-
-                userRepository.saveAll(List.of(admin, teacher, studentUser));
-                logger.info("Demo accounts ready: admin/admin123, teacher/teacher123, student/student123");
+                logger.info("Demo accounts ready: admin/admin123, teacher/teacher123, student/student123, jane/student123, alex/student123");
             }
         };
     }

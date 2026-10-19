@@ -4,9 +4,11 @@ import * as api from '../api';
 const AuthContext = createContext(null);
 
 export const DEMO_USERS = {
-  teacher: { username: 'teacher', password: 'teacher123', label: 'Teacher (teacher/teacher123)' },
-  admin:   { username: 'admin',   password: 'admin123',   label: 'Admin (admin/admin123)' },
-  student: { username: 'student', password: 'student123', label: 'Student (student/student123)' }
+  teacher: { username: 'teacher', password: 'teacher123', label: 'Teacher (teacher123)' },
+  admin:   { username: 'admin',   password: 'admin123',   label: 'Admin (admin123)' },
+  student: { username: 'student', password: 'student123', label: 'Student: John Doe (student123)' },
+  jane:    { username: 'jane',    password: 'student123', label: 'Student: Jane Smith' },
+  alex:    { username: 'alex',    password: 'student123', label: 'Student: Alex Rivera' }
 };
 
 export function AuthProvider({ children }) {

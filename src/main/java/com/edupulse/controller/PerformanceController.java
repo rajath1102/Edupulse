@@ -2,10 +2,14 @@ package com.edupulse.controller;
 
 import com.edupulse.dto.PerformanceRequestDTO;
 import com.edupulse.dto.PerformanceResponseDTO;
+import com.edupulse.model.Role;
+import com.edupulse.security.UserPrincipal;
 import com.edupulse.service.PerformanceService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,7 +57,14 @@ public class PerformanceController {
      * GET /api/performance/student/{studentId} - Get all performance records for a student
      */
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<List<PerformanceResponseDTO>> getPerformanceByStudentId(@PathVariable Long studentId) {
+    public ResponseEntity<List<PerformanceResponseDTO>> getPerformanceByStudentId(
+            @PathVariable Long studentId,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        if (currentUser != null && currentUser.getRole() == Role.ROLE_STUDENT) {
+            if (currentUser.getStudentId() == null || !currentUser.getStudentId().equals(studentId)) {
+                throw new AccessDeniedException("Access Denied: Students are only permitted to access their own performance records.");
+            }
+        }
         List<PerformanceResponseDTO> list = performanceService.getPerformancesByStudentId(studentId);
         return ResponseEntity.ok(list);
     }

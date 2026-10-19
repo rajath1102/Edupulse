@@ -136,4 +136,32 @@ class SecurityAndAuthIntegrationTests {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Bob Ross"));
     }
+
+    @Test
+    void testStudentPrivacyAccessRestrictions() throws Exception {
+        // 1. Login as demo student (studentId: 1)
+        LoginRequestDTO studentLogin = new LoginRequestDTO("student", "student123");
+        MvcResult result = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(studentLogin)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String studentToken = objectMapper.readTree(result.getResponse().getContentAsString()).get("token").asText();
+
+        // 2. Student CAN view their own analytics (studentId: 1)
+        mockMvc.perform(get("/api/analysis/student/1")
+                        .header("Authorization", "Bearer " + studentToken))
+                .andExpect(status().isOk());
+
+        // 3. Student CANNOT view another student's analytics (e.g. studentId: 2) -> 403 Forbidden
+        mockMvc.perform(get("/api/analysis/student/2")
+                        .header("Authorization", "Bearer " + studentToken))
+                .andExpect(status().isForbidden());
+
+        // 4. Student CANNOT view another student's performance records -> 403 Forbidden
+        mockMvc.perform(get("/api/performance/student/2")
+                        .header("Authorization", "Bearer " + studentToken))
+                .andExpect(status().isForbidden());
+    }
 }
