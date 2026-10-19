@@ -67,6 +67,18 @@ public class PerformanceService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Batch log performance records for multiple students/subjects.
+     */
+    public List<PerformanceResponseDTO> addBatchPerformance(List<PerformanceRequestDTO> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            throw new BadRequestException("Performance records list cannot be empty.");
+        }
+        return dtos.stream()
+                .map(this::addPerformance)
+                .collect(Collectors.toList());
+    }
+
     private PerformanceResponseDTO mapToResponseDTO(Performance p) {
         return new PerformanceResponseDTO(
                 p.getId(),

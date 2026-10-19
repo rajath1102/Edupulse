@@ -6,6 +6,7 @@ import LoginModal from './components/LoginModal';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
 import Analytics from './pages/Analytics';
+import AiScanner from './pages/AiScanner';
 import AiAdvisor from './pages/AiAdvisor';
 import SettingsPage from './pages/Settings';
 import * as api from './api';
@@ -118,6 +119,13 @@ function MainApp() {
               students={visibleStudents}
               selectedStudentId={effectiveSelectedId}
               onSelectStudent={setSelectedStudentId}
+            />
+          )}
+
+          {currentSection === 'ai-scanner' && (
+            <AiScanner
+              students={students}
+              onRefreshStudents={loadStudents}
             />
           )}
 

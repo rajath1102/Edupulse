@@ -169,3 +169,21 @@ export async function getAiRecommendation(studentId) {
   });
   return handleResponse(res);
 }
+
+export async function scanMarks(imageBase64, mimeType = 'image/jpeg') {
+  const res = await fetch(`${API_BASE}/api/ai/scan-marks`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ imageBase64, mimeType })
+  });
+  return handleResponse(res);
+}
+
+export async function saveBatchPerformance(records) {
+  const res = await fetch(`${API_BASE}/api/performance/batch`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(records)
+  });
+  return handleResponse(res);
+}

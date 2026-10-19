@@ -40,5 +40,19 @@ public class AiRecommendationController {
         AiRecommendationResponseDTO response = aiRecommendationService.generateRecommendation(studentId);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * POST /api/ai/scan-marks - Optical exam & mark sheet scanner using Gemini Vision
+     */
+    @PostMapping("/scan-marks")
+    public ResponseEntity<com.edupulse.dto.ScanMarksResponseDTO> scanMarks(
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody com.edupulse.dto.ScanMarksRequestDTO request,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        if (currentUser != null && currentUser.getRole() == Role.ROLE_STUDENT) {
+            throw new AccessDeniedException("Access Denied: Only teachers and administrators can scan exam sheets.");
+        }
+        com.edupulse.dto.ScanMarksResponseDTO response = aiRecommendationService.scanExamSheet(request.getImageBase64(), request.getMimeType());
+        return ResponseEntity.ok(response);
+    }
 }
 

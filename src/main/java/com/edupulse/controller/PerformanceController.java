@@ -54,6 +54,16 @@ public class PerformanceController {
     }
 
     /**
+     * POST /api/performance/batch - Batch log multiple performance records
+     */
+    @PostMapping("/batch")
+    public ResponseEntity<List<PerformanceResponseDTO>> addBatchPerformance(
+            @Valid @RequestBody List<PerformanceRequestDTO> dtos) {
+        List<PerformanceResponseDTO> responses = performanceService.addBatchPerformance(dtos);
+        return new ResponseEntity<>(responses, HttpStatus.CREATED);
+    }
+
+    /**
      * GET /api/performance/student/{studentId} - Get all performance records for a student
      */
     @GetMapping("/student/{studentId}")

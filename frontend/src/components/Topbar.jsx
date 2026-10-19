@@ -6,6 +6,7 @@ const SECTION_TITLES = {
   'dashboard':  '📊 Student Performance Dashboard',
   'students':   '👥 Student Directory & Records',
   'analytics':  '📈 Academic Risk Analytics',
+  'ai-scanner': '📷 AI Exam Answer-Sheet & Marks Scanner',
   'ai-advisor': '✦ AI Study Plan Advisor',
   'settings':   '⚙ Deployment & Cloud Settings'
 };

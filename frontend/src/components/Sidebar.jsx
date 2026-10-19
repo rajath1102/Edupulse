@@ -8,7 +8,8 @@ import {
   GraduationCap, 
   LogOut,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  Scan
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,6 +28,7 @@ export default function Sidebar({ currentSection, onSelectSection, onOpenLoginMo
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'students', label: 'All Students', icon: Users },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'ai-scanner', label: 'AI Exam Scanner', icon: Scan },
     { id: 'ai-advisor', label: 'AI Study Advisor', icon: Sparkles },
     { id: 'settings', label: 'Settings & Cloud', icon: Settings },
   ];
