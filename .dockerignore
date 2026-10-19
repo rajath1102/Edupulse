@@ -1,0 +1,10 @@
+target/
+frontend/
+.git/
+.mvn/
+*.log
+.gemini/
+.idea/
+.vscode/
+tmp/
+temp/

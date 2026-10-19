@@ -84,7 +84,9 @@ public class SecurityConfig {
                                 "/style.css",
                                 "/app.js",
                                 "/favicon.ico",
-                                "/error"
+                                "/error",
+                                "/health",
+                                "/api/health"
                         ).permitAll()
 
                         // 2. Public Authentication Endpoints

@@ -14,6 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.edupulse.dto.ScanMarksResponseDTO;
+import com.edupulse.dto.ScannedRecordDTO;
+import com.edupulse.model.Student;
+import com.edupulse.repository.StudentRepository;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -23,12 +29,6 @@ import java.util.Map;
  * Service to generate personalized AI recommendations and study plans using Google Gemini API.
  * Gracefully falls back to a rule-based advisor if GEMINI_API_KEY is not configured or unavailable.
  */
-import com.edupulse.dto.ScanMarksResponseDTO;
-import com.edupulse.dto.ScannedRecordDTO;
-import com.edupulse.model.Student;
-import com.edupulse.repository.StudentRepository;
-import java.util.ArrayList;
-
 @Service
 public class AiRecommendationService {
 
