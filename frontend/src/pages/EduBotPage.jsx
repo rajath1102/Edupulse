@@ -69,7 +69,7 @@ export default function EduBotPage() {
       id: 'init-1',
       role: 'model',
       text: "👋 **Hello! I'm EduBot**, your university AI Academic Tutor and Coursework Mentor.\n\nWhether you need an algorithm explained simply, code examples, database concepts, or practice exam questions — ask away! You can also click any of the quick-start topics below.",
-      aiSource: 'Google Gemini 3.8 Flash',
+      aiSource: 'Google Gemini AI',
       subject: 'General Academic',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }

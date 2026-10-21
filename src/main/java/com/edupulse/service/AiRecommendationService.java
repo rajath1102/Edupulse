@@ -82,37 +82,48 @@ public class AiRecommendationService {
             );
         }
 
-        // Step 3: Call Gemini API
-        try {
-            String prompt = buildPrompt(analysis);
-            String aiRecommendation = callGeminiApi(prompt);
+        // Step 3: Call Gemini API (with model fallback chain)
+        String[] modelFallbackChain = {
+                geminiModel,
+                "gemini-1.5-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-1.5-flash-latest"
+        };
+        for (String model : modelFallbackChain) {
+            try {
+                String prompt = buildPrompt(analysis);
+                String aiRecommendation = callGeminiApi(prompt, model);
 
-            return new AiRecommendationResponseDTO(
-                    analysis.getStudentId(),
-                    analysis.getStudentName(),
-                    analysis.getRiskLevel(),
-                    analysis.getAverageMarks(),
-                    analysis.getAverageAttendance(),
-                    analysis.getWeakSubjects(),
-                    aiRecommendation,
-                    "Google Gemini AI (" + geminiModel + ")"
-            );
-        } catch (Exception ex) {
-            logger.error("Error communicating with Gemini API: {}. Falling back to rule-based recommendation.", ex.getMessage());
-            String fallbackPlan = generateRuleBasedStudyPlan(analysis) +
-                    "\n\n[Note: Real-time Gemini API call failed (" + ex.getMessage() + "). Displaying local adaptive recommendation.]";
-
-            return new AiRecommendationResponseDTO(
-                    analysis.getStudentId(),
-                    analysis.getStudentName(),
-                    analysis.getRiskLevel(),
-                    analysis.getAverageMarks(),
-                    analysis.getAverageAttendance(),
-                    analysis.getWeakSubjects(),
-                    fallbackPlan,
-                    "Rule-Based Adaptive Advisor (Gemini API fallback)"
-            );
+                return new AiRecommendationResponseDTO(
+                        analysis.getStudentId(),
+                        analysis.getStudentName(),
+                        analysis.getRiskLevel(),
+                        analysis.getAverageMarks(),
+                        analysis.getAverageAttendance(),
+                        analysis.getWeakSubjects(),
+                        aiRecommendation,
+                        "Google Gemini AI (" + model + ")"
+                );
+            } catch (Exception ex) {
+                logger.warn("Gemini model '{}' recommendation notice: {}. Trying next model...", model, ex.getMessage());
+            }
         }
+
+        // If all Gemini models fail, return rule-based fallback
+        logger.error("All Gemini models failed. Falling back to rule-based recommendation.");
+        String fallbackPlan = generateRuleBasedStudyPlan(analysis) +
+                "\n\n[Note: Real-time Gemini API call failed. Displaying local adaptive recommendation.]";
+
+        return new AiRecommendationResponseDTO(
+                analysis.getStudentId(),
+                analysis.getStudentName(),
+                analysis.getRiskLevel(),
+                analysis.getAverageMarks(),
+                analysis.getAverageAttendance(),
+                analysis.getWeakSubjects(),
+                fallbackPlan,
+                "Rule-Based Adaptive Advisor (Gemini API fallback)"
+        );
     }
 
     /**
@@ -155,8 +166,8 @@ public class AiRecommendationService {
     /**
      * Executes HTTP POST request to Google Gemini API and extracts generated text.
      */
-    private String callGeminiApi(String prompt) throws Exception {
-        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, geminiModel, geminiApiKey);
+    private String callGeminiApi(String prompt, String modelToUse) throws Exception {
+        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, modelToUse, geminiApiKey);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -249,41 +260,51 @@ public class AiRecommendationService {
             return generateMockScanRecords("Mock Intelligent OCR Reader (Set GEMINI_API_KEY for Google Gemini Vision)");
         }
 
-        try {
-            String prompt = """
-                    You are an expert AI Optical Mark Reader and Exam Score Sheet Scanner for the EduPulse educational platform.
-                    Examine this uploaded image of an exam score sheet, mark sheet, grade list, or student report.
-                    Extract every student entry into a strict JSON array of objects.
-                    Each object must have the following keys:
-                    - "studentName": Full name of the student as detected on the sheet
-                    - "subject": Course or subject name
-                    - "marks": Numeric score between 0 and 100 (convert percentage if out of 50 or 25)
-                    - "attendance": Classroom attendance percentage (if not on sheet, default to 85.0)
-                    - "notes": Optional brief remark (e.g. "Scored High", "Needs Attention")
+        String prompt = """
+                You are an expert AI Optical Mark Reader and Exam Score Sheet Scanner for the EduPulse educational platform.
+                Examine this uploaded image of an exam score sheet, mark sheet, grade list, or student report.
+                Extract every student entry into a strict JSON array of objects.
+                Each object must have the following keys:
+                - "studentName": Full name of the student as detected on the sheet
+                - "subject": Course or subject name
+                - "marks": Numeric score between 0 and 100 (convert percentage if out of 50 or 25)
+                - "attendance": Classroom attendance percentage (if not on sheet, default to 85.0)
+                - "notes": Optional brief remark (e.g. "Scored High", "Needs Attention")
 
-                    Important:
-                    Return ONLY the raw JSON array. Do not include markdown code block formatting, backticks, or explanatory text.
-                    """;
+                Important:
+                Return ONLY the raw JSON array. Do not include markdown code block formatting, backticks, or explanatory text.
+                """;
 
-            String rawResponse = callGeminiVisionApi(prompt, cleanBase64, effectiveMimeType);
-            List<ScannedRecordDTO> records = parseGeminiScanResponse(rawResponse);
-            int matchedCount = matchWithDatabaseStudents(records);
+        String[] modelFallbackChain = {
+                geminiModel,
+                "gemini-1.5-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-1.5-flash-latest"
+        };
 
-            return new ScanMarksResponseDTO(
-                    records,
-                    records.size(),
-                    matchedCount,
-                    "Google Gemini Vision (" + geminiModel + ")",
-                    String.format("Successfully parsed %d records (%d matched to existing students).", records.size(), matchedCount)
-            );
-        } catch (Exception ex) {
-            logger.warn("Gemini Vision processing notice: {}. Using adaptive OCR reader.", ex.getMessage());
-            return generateMockScanRecords("Intelligent OCR Reader (Gemini API fallback: " + ex.getMessage() + ")");
+        for (String model : modelFallbackChain) {
+            try {
+                String rawResponse = callGeminiVisionApi(prompt, cleanBase64, effectiveMimeType, model);
+                List<ScannedRecordDTO> records = parseGeminiScanResponse(rawResponse);
+                int matchedCount = matchWithDatabaseStudents(records);
+
+                return new ScanMarksResponseDTO(
+                        records,
+                        records.size(),
+                        matchedCount,
+                        "Google Gemini Vision (" + model + ")",
+                        String.format("Successfully parsed %d records (%d matched to existing students).", records.size(), matchedCount)
+                );
+            } catch (Exception ex) {
+                logger.warn("Gemini Vision model '{}' notice: {}. Trying next model...", model, ex.getMessage());
+            }
         }
+
+        return generateMockScanRecords("Intelligent OCR Reader (Gemini API fallback)");
     }
 
-    private String callGeminiVisionApi(String prompt, String cleanBase64, String mimeType) throws Exception {
-        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, geminiModel, geminiApiKey);
+    private String callGeminiVisionApi(String prompt, String cleanBase64, String mimeType, String modelToUse) throws Exception {
+        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, modelToUse, geminiApiKey);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -463,16 +484,28 @@ public class AiRecommendationService {
                 5. Maintain an encouraging and supportive tone for student academic success.
                 """, studentName, subject);
 
-        // Attempt Gemini API call
+        // Attempt Gemini API call (with model fallback chain)
         if (geminiApiKey != null && !geminiApiKey.isBlank()) {
-            try {
-                String reply = callGeminiChatApi(systemPrompt, request.getHistory(), query);
-                if (reply != null && !reply.isBlank()) {
-                    return new ChatResponseDTO(reply, "Google Gemini AI (" + geminiModel + ")", subject);
+            String[] modelFallbackChain = {
+                geminiModel,
+                "gemini-1.5-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-1.5-flash-latest"
+            };
+            for (String model : modelFallbackChain) {
+                // Skip duplicates
+                if (model.equals(geminiModel) && !model.equals(modelFallbackChain[0])) continue;
+                try {
+                    String reply = callGeminiChatApi(systemPrompt, request.getHistory(), query, model);
+                    if (reply != null && !reply.isBlank()) {
+                        logger.info("EduBot: Gemini response received via model '{}'.", model);
+                        return new ChatResponseDTO(reply, "Google Gemini AI (" + model + ")", subject);
+                    }
+                } catch (Exception ex) {
+                    logger.warn("EduBot: Gemini model '{}' failed: {}. Trying next model...", model, ex.getMessage());
                 }
-            } catch (Exception ex) {
-                logger.warn("Gemini Chat API notice: {}. Using EduBot Knowledge Engine.", ex.getMessage());
             }
+            logger.warn("EduBot: All Gemini models failed. Using EduBot Knowledge Engine.");
         }
 
         // Adaptive Fallback Knowledge Engine
@@ -480,8 +513,8 @@ public class AiRecommendationService {
         return new ChatResponseDTO(fallbackReply, "EduBot Adaptive Knowledge Engine", subject);
     }
 
-    private String callGeminiChatApi(String systemPrompt, List<ChatMessageDTO> history, String userMessage) throws Exception {
-        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, geminiModel, geminiApiKey);
+    private String callGeminiChatApi(String systemPrompt, List<ChatMessageDTO> history, String userMessage, String modelToUse) throws Exception {
+        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, modelToUse, geminiApiKey);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -550,6 +583,8 @@ public class AiRecommendationService {
                     - 🗄️ **Databases:** *"Explain 1NF, 2NF, and 3NF Normalization with examples"*
                     - 🤖 **Machine Learning:** *"What causes Overfitting and how do we prevent it?"*
                     - 💻 **Operating Systems:** *"What are the 4 Deadlock conditions?"*
+                    - 🏗️ **OOP:** *"Explain the 4 pillars of Object-Oriented Programming"*
+                    - 🔗 **Data Structures:** *"Explain linked lists, stacks, queues, trees, or graphs"*
                     - 📝 **Placement Prep:** *"Give me 3 practice interview questions on Data Structures"*
                     
                     What concept, problem, or subject would you like to master today?
@@ -557,24 +592,29 @@ public class AiRecommendationService {
         }
 
         // 2. Identity & capabilities
-        if (q.contains("who are you") || q.contains("what can you do") || q.contains("what is your name") || q.contains("help me")) {
+        if (q.contains("who are you") || q.contains("what can you do") || q.contains("what is your name") || q.contains("help me") || q.contains("what are you")) {
             return """
                     ### 🤖 About EduBot
                     
                     I am **EduBot**, an interactive AI academic tutor embedded directly inside **EduPulse**.
                     
-                    I help students:
-                    1. **Break down complex engineering & CS concepts** with intuitive analogies.
-                    2. **Provide verified code examples** in Java, Python, C++, and SQL.
-                    3. **Analyze time & space complexities** (Big-O analysis).
-                    4. **Prepare for semester exams and campus placement interviews**.
+                    I help students with **any computer science or academic topic**, including:
+                    - 📊 **Data Structures & Algorithms** (Arrays, Trees, Graphs, Sorting, Searching)
+                    - 🗄️ **Database Management** (SQL, Normalization, Transactions, Indexing)
+                    - 💻 **Operating Systems** (Processes, Deadlocks, Memory Management)
+                    - 🌐 **Computer Networks** (TCP/IP, OSI Model, Protocols)
+                    - 🏗️ **Object-Oriented Programming** (Inheritance, Polymorphism, Design Patterns)
+                    - 🤖 **Machine Learning & AI** (Supervised/Unsupervised, Neural Networks)
+                    - ☁️ **Cloud Computing & Web Development**
+                    - 🧮 **Discrete Math, Automata Theory, Compilers**
+                    - 📝 **Interview & Exam Preparation**
                     
-                    Feel free to type any academic doubt or pick one of the quick topics!
+                    **Just ask me anything!** Type your doubt or topic and I'll explain it clearly.
                     """;
         }
 
         // 3. Thank you & pleasantries
-        if (q.contains("thank you") || q.contains("thanks") || q.equals("thx") || q.contains("awesome") || q.contains("great job")) {
+        if (q.contains("thank you") || q.contains("thanks") || q.equals("thx") || q.contains("awesome") || q.contains("great job") || q.contains("nice") || q.contains("good bot")) {
             return """
                     ### 😊 You're very welcome!
                     
@@ -584,264 +624,699 @@ public class AiRecommendationService {
                     """;
         }
 
-        if (q.contains("dijkstra") || q.contains("shortest path")) {
+        // 4. Dijkstra / Graph Shortest Path
+        if (q.contains("dijkstra") || q.contains("shortest path") || q.contains("bellman ford") || q.contains("floyd warshall")) {
             return """
-                    ### 🧭 Dijkstra's Shortest Path Algorithm
+                    ### 🧭 Graph Shortest Path Algorithms
                     
-                    **Core Idea:**
-                    Dijkstra's Algorithm finds the shortest path from a single source node to all other nodes in a weighted graph with **non-negative edge weights**. It employs a **greedy strategy**.
-                    
-                    #### ⚙️ How It Works (Step-by-Step):
-                    1. Initialize distances: Set `dist[source] = 0` and all other vertices to `Infinity`.
-                    2. Use a **Min-Priority Queue** (min-heap) to always pick the vertex `u` with the smallest tentative distance.
-                    3. For every neighbor `v` of `u`, perform **Relaxation**:
-                       `if (dist[u] + weight(u, v) < dist[v]) { dist[v] = dist[u] + weight(u, v); }`
-                    4. Mark `u` as visited and repeat until the queue is empty.
+                    **Dijkstra's Algorithm** – Single source, non-negative weights:
+                    - Uses a **Min-Priority Queue (min-heap)** greedily visiting the closest unvisited node.
+                    - **Relaxation:** `if (dist[u] + w(u,v) < dist[v]) → update dist[v]`
+                    - ⏱️ Time: `O((V + E) log V)` | Space: `O(V)`
+                    - ❌ Fails with **negative edge weights**.
                     
                     ```java
-                    // Java Relaxation snippet:
+                    // Relaxation step (Java):
                     if (dist[u] + edge.weight < dist[v]) {
                         dist[v] = dist[u] + edge.weight;
-                        pq.offer(new Node(v, dist[v]));
+                        pq.offer(new int[]{v, dist[v]});
                     }
                     ```
                     
-                    #### ⏱️ Complexity:
-                    - **Time Complexity:** `O((V + E) log V)` using an adjacency list and binary min-heap.
-                    - **Space Complexity:** `O(V)` for distance array and priority queue.
+                    **Bellman-Ford** – Single source, handles negative weights:
+                    - Relaxes **all edges V-1 times**. Detects negative cycles on the V-th iteration.
+                    - ⏱️ Time: `O(V × E)` — slower but universal.
                     
-                    💡 *Note:* Does **not** work correctly with negative weights (use Bellman-Ford instead!).
+                    **Floyd-Warshall** – All-pairs shortest paths:
+                    - DP approach: `dp[i][j] = min(dp[i][j], dp[i][k] + dp[k][j])`
+                    - ⏱️ Time: `O(V³)` | Works with negative weights (not negative cycles).
+                    
+                    💡 *Rule of thumb:* Use Dijkstra for maps/GPS, Bellman-Ford for financial graphs, Floyd-Warshall for small dense graphs.
                     """;
         }
 
-        if (q.contains("dynamic programming") || q.contains("dp") || q.contains("knapsack") || q.contains("memoiz")) {
+        // 5. Dynamic Programming
+        if (q.contains("dynamic programming") || q.contains(" dp ") || q.contains("dp problem") || q.contains("knapsack") || q.contains("memoiz") || q.contains("tabulation") || q.contains("longest common subsequence") || q.contains("lcs") || q.contains("fibonacci dp")) {
             return """
                     ### 🧩 Dynamic Programming (DP) Demystified
                     
-                    **Core Principle:**
-                    Dynamic Programming solves complex problems by breaking them down into **overlapping subproblems** and remembering previously solved states (**optimal substructure**).
+                    **Core Principle:** Solve complex problems by breaking them into **overlapping subproblems** and storing solutions (avoiding recomputation).
                     
                     #### ⚖️ Top-Down vs Bottom-Up:
-                    - **Memoization (Top-Down):** Write standard recursion, then cache return values in an array or HashMap (`dp[n]`).
-                    - **Tabulation (Bottom-Up):** Iteratively fill an array from base cases up to `n`. Avoids call-stack overhead.
+                    - **Memoization (Top-Down):** Recursion + cache results in `dp[]` or `HashMap`.
+                    - **Tabulation (Bottom-Up):** Fill a DP table iteratively from base cases.
                     
-                    #### 🎒 Classic 0/1 Knapsack State Transition:
+                    #### 4 Steps to Solve ANY DP Problem:
+                    1. **Define the state:** What does `dp[i]` represent?
+                    2. **Base case:** Smallest possible input value.
+                    3. **Recurrence relation:** How does `dp[i]` depend on smaller states?
+                    4. **Answer:** Which `dp` cell holds the final answer?
+                    
+                    #### 🎒 Classic 0/1 Knapsack:
                     ```python
-                    # If item weight fits in remaining capacity W:
-                    dp[i][w] = max(dp[i-1][w], values[i-1] + dp[i-1][w - weights[i-1]])
-                    # Otherwise, skip item:
-                    dp[i][w] = dp[i-1][w]
+                    # dp[i][w] = max value using first i items with capacity w
+                    dp[i][w] = max(dp[i-1][w],  # skip item i
+                                   values[i-1] + dp[i-1][w - weights[i-1]])  # take item i
                     ```
                     
-                    #### 🎯 4 Steps to Solve Any DP Problem:
-                    1. Define the state clearly (e.g. `dp[i]` = max profit up to index `i`).
-                    2. Find the base cases (`dp[0] = 0`).
-                    3. Formulate the recurrence relation.
-                    4. Determine computation order (e.g., left to right).
+                    #### 📜 Longest Common Subsequence (LCS):
+                    ```python
+                    if text1[i] == text2[j]:
+                        dp[i][j] = 1 + dp[i-1][j-1]
+                    else:
+                        dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+                    ```
+                    
+                    💡 *Famous DP problems:* Fibonacci, Coin Change, LCS, Knapsack, Matrix Chain Multiplication, Edit Distance.
                     """;
         }
 
-        if (q.contains("big o") || q.contains("complexity") || q.contains("time complexity")) {
+        // 6. Big-O / Complexity
+        if (q.contains("big o") || q.contains("big-o") || q.contains("complexity") || q.contains("time complexity") || q.contains("space complexity") || q.contains("asymptotic")) {
             return """
-                    ### 📊 Big-O Notation Quick Reference
+                    ### 📊 Big-O Notation & Complexity Analysis
                     
-                    Big-O measures the **worst-case asymptotic growth rate** of an algorithm as input size `n` grows towards infinity.
+                    Big-O measures the **worst-case asymptotic growth rate** as input size `n → ∞`.
                     
-                    | Notation | Name | Typical Example | Performance |
+                    | Notation | Name | Example | Performance |
                     |---|---|---|---|
-                    | **O(1)** | Constant | Hash map lookup, array index | ⚡ Instantaneous |
-                    | **O(log n)** | Logarithmic | Binary Search, Balanced BST | 🚀 Extremely fast |
-                    | **O(n)** | Linear | Array linear traversal | 🟢 Scalable |
-                    | **O(n log n)** | Linearithmic | Merge Sort, QuickSort (avg), HeapSort | 🟡 Best general sort |
-                    | **O(n²)** | Quadratic | Nested loops, Bubble/Selection Sort | 🟠 Slow for large n |
-                    | **O(2ⁿ)** | Exponential | Recursive Fibonacci, Subsets | 🔴 Impractical > 30 |
+                    | **O(1)** | Constant | Hash map lookup, array index | ⚡ Best |
+                    | **O(log n)** | Logarithmic | Binary Search, Balanced BST | 🚀 Excellent |
+                    | **O(n)** | Linear | Array traversal, linear search | 🟢 Good |
+                    | **O(n log n)** | Linearithmic | MergeSort, QuickSort (avg) | 🟡 Acceptable |
+                    | **O(n²)** | Quadratic | Nested loops, Bubble Sort | 🟠 Slow |
+                    | **O(2ⁿ)** | Exponential | Brute-force subsets, naive Fibonacci | 🔴 Avoid |
+                    | **O(n!)** | Factorial | Permutations, TSP brute force | 💀 Impractical |
                     
-                    💡 **Pro Tip:** In technical interviews, always state space complexity alongside time complexity!
+                    #### 💡 Interview Tips:
+                    - Always state **both** time AND space complexity.
+                    - Distinguish **best / average / worst** case (e.g., QuickSort: O(n log n) avg, O(n²) worst).
+                    - Dropping constants: `O(2n) = O(n)`, `O(n + 100) = O(n)`.
                     """;
         }
 
-        if (q.contains("normalization") || q.contains("1nf") || q.contains("2nf") || q.contains("3nf") || q.contains("bcnf")) {
+        // 7. Normalization / 1NF / 2NF / 3NF / BCNF
+        if (q.contains("normalization") || q.contains("1nf") || q.contains("2nf") || q.contains("3nf") || q.contains("bcnf") || q.contains("normal form") || q.contains("functional dependency")) {
             return """
-                    ### 🗄️ Database Normalization (1NF to BCNF)
+                    ### 🗄️ Database Normalization (1NF → BCNF)
                     
-                    **Objective:** Eliminate data redundancy and prevent insertion, update, and deletion anomalies.
+                    **Goal:** Eliminate redundancy and anomalies (insertion, update, deletion).
                     
                     1. **1NF (First Normal Form):**
                        - Atomic values only (no comma-separated lists or repeating groups).
-                       - Each row must have a unique identifier (Primary Key).
+                       - Each row has a unique Primary Key.
+                       - *Violation example:* A "Phones" column storing "9876543210, 1234567890".
                     
                     2. **2NF (Second Normal Form):**
                        - Must be in 1NF.
-                       - **No Partial Dependencies**: Every non-prime attribute must depend on the *entire* candidate key, not just a subset of a composite key.
+                       - **No Partial Dependencies:** Every non-prime attribute depends on the *entire* composite primary key.
+                       - *Violation:* `(StudentID, CourseID) → StudentName` (StudentName depends only on StudentID).
                     
                     3. **3NF (Third Normal Form):**
                        - Must be in 2NF.
-                       - **No Transitive Dependencies**: Non-prime attributes must not depend on other non-prime attributes (`A -> B -> C`).
+                       - **No Transitive Dependencies:** Non-prime attributes must not depend on other non-prime attributes.
+                       - *Violation:* `StudentID → ZipCode → City` (City transitively depends on StudentID).
                     
                     4. **BCNF (Boyce-Codd Normal Form):**
-                       - Stricter version of 3NF.
-                       - For every functional dependency `X -> Y`, `X` must be a **Super Key**.
+                       - Stricter than 3NF.
+                       - For every FD `X → Y`, `X` must be a **Super Key**.
+                       - *Used when 3NF tables still have anomalies due to overlapping candidate keys.*
+                    
+                    💡 **Rule of thumb:** 3NF is usually sufficient for most real-world databases. BCNF is required for exam questions about anomaly-free designs.
                     """;
         }
 
-        if (q.contains("transaction") || q.contains("acid") || q.contains("concurrency") || q.contains("serializab") || q.contains("2pl")) {
+        // 8. Transaction / ACID / Concurrency
+        if (q.contains("transaction") || q.contains("acid") || q.contains("concurrency") || q.contains("serializab") || q.contains("2pl") || q.contains("rollback") || q.contains("commit") || q.contains("dirty read")) {
             return """
                     ### 💳 Database Transactions & ACID Properties
                     
-                    A **Transaction** is a logical unit of database processing that includes one or more database operations (READ, WRITE, COMMIT, ROLLBACK).
+                    A **Transaction** is a logical unit of work containing one or more DB operations that must all succeed together.
                     
-                    #### 🏛️ The 4 ACID Properties:
-                    1. **Atomicity ("All or Nothing"):**
-                       - Entire transaction executes completely, or rolls back entirely upon failure. No partial state is saved.
-                       - *Example:* Bank transfer from Account A to B: deducting money from A without crediting B is impossible.
+                    #### 🏛️ ACID Properties:
+                    1. **Atomicity** — "All or Nothing": Either all operations commit, or all roll back.
+                       - *Example:* Bank transfer: debit Account A AND credit Account B — one can't happen without the other.
                     
-                    2. **Consistency:**
-                       - The database moves from one valid state to another valid state, preserving all integrity constraints, foreign keys, and triggers.
+                    2. **Consistency** — DB moves from one valid state to another, preserving all constraints (foreign keys, triggers).
                     
-                    3. **Isolation:**
-                       - Concurrent transactions execute independently without interfering with each other. Intermediate states of transaction T1 are invisible to T2.
-                       - *Isolation Levels:* Read Uncommitted, Read Committed, Repeatable Read, Serializable.
+                    3. **Isolation** — Concurrent transactions don't interfere. Intermediate states of T1 are invisible to T2.
+                       - **Isolation Levels:** Read Uncommitted → Read Committed → Repeatable Read → Serializable (strictest).
                     
-                    4. **Durability:**
-                       - Once a transaction commits, its changes survive permanently, even in the event of power loss or system crashes (maintained via Write-Ahead Logging / WAL).
+                    4. **Durability** — Committed changes survive crashes (via Write-Ahead Logging/WAL).
                     
-                    #### 🔒 Concurrency Control & Two-Phase Locking (2PL):
-                    - **Growing Phase:** Locks acquired, none released.
-                    - **Shrinking Phase:** Locks released, none acquired.
-                    - Guarantees **Conflict Serializability** and prevents dirty reads, lost updates, and phantom reads.
+                    #### 🔒 Two-Phase Locking (2PL):
+                    - **Growing Phase:** Acquire locks (no releasing).
+                    - **Shrinking Phase:** Release locks (no acquiring).
+                    - Guarantees **Conflict Serializability** (prevents dirty reads, lost updates, phantom reads).
+                    
+                    #### ⚠️ Common Concurrency Problems:
+                    | Problem | Description |
+                    |---|---|
+                    | **Dirty Read** | Reading uncommitted data from another transaction |
+                    | **Lost Update** | Two transactions overwrite the same data |
+                    | **Phantom Read** | New rows appear in re-executed query due to another transaction |
                     """;
         }
 
-        if (q.contains("join") || q.contains("indexing") || q.contains("index") || q.contains("b-tree") || q.contains("b+ tree")) {
+        // 9. SQL Joins / Indexing
+        if (q.contains("join") || q.contains("inner join") || q.contains("left join") || q.contains("right join") || q.contains("indexing") || q.contains("b-tree") || q.contains("b+ tree") || q.contains("sql query")) {
             return """
                     ### 🔍 SQL Joins & Database Indexing
                     
                     #### 🔗 Types of SQL Joins:
-                    - **INNER JOIN:** Returns records that have matching values in both tables.
-                    - **LEFT (OUTER) JOIN:** Returns all records from the left table, and matching records from the right table (NULL if no match).
-                    - **RIGHT (OUTER) JOIN:** Returns all records from the right table, and matched from the left.
-                    - **FULL (OUTER) JOIN:** Returns all records when there is a match in either left or right table.
-                    - **CROSS JOIN:** Cartesian product (every row of Table A paired with every row of Table B).
+                    | Join Type | What it Returns |
+                    |---|---|
+                    | **INNER JOIN** | Only matching rows from both tables |
+                    | **LEFT JOIN** | All rows from left table + matched rows from right (NULL if no match) |
+                    | **RIGHT JOIN** | All rows from right table + matched from left |
+                    | **FULL OUTER JOIN** | All rows from both tables (NULL where no match) |
+                    | **CROSS JOIN** | Cartesian product (every row × every row) |
+                    | **SELF JOIN** | A table joined with itself (e.g., employee-manager hierarchy) |
                     
-                    #### ⚡ How Indexes Work (B+ Tree):
-                    - A database index is an auxiliary data structure (typically a **B+ Tree**) that enables O(log N) lookups instead of full table scans (O(N)).
-                    - **Clustered Index:** Determines physical storage order of rows on disk (only 1 per table, usually Primary Key).
-                    - **Non-Clustered Index:** Separate structure storing column values and pointers to data rows.
-                    - **Trade-off:** Faster SELECT queries vs. slower INSERT/UPDATE/DELETE (because the index tree must be rebalanced).
+                    ```sql
+                    -- INNER JOIN example:
+                    SELECT s.name, m.marks
+                    FROM students s
+                    INNER JOIN marks m ON s.id = m.student_id
+                    WHERE m.marks > 60;
+                    ```
+                    
+                    #### ⚡ Database Indexing (B+ Tree):
+                    - Index = auxiliary B+ Tree structure allowing **O(log N)** lookup vs O(N) full table scan.
+                    - **Clustered Index:** Physical row order on disk = index order (one per table, usually PK).
+                    - **Non-Clustered Index:** Separate structure with pointers to rows (multiple allowed).
+                    - **Trade-off:** Faster SELECT queries ↔ slower INSERT/UPDATE/DELETE (tree rebalancing overhead).
                     """;
         }
 
-        if (q.contains("sort") || q.contains("quicksort") || q.contains("mergesort") || q.contains("binary search")) {
+        // 10. Sorting algorithms / Binary Search
+        if (q.contains("sort") || q.contains("quicksort") || q.contains("mergesort") || q.contains("heapsort") || q.contains("bubble sort") || q.contains("binary search") || q.contains("insertion sort")) {
             return """
                     ### ⚡ Sorting Algorithms & Binary Search
                     
-                    | Algorithm | Best Time | Average Time | Worst Time | Space | Stable? |
+                    | Algorithm | Best | Average | Worst | Space | Stable? |
                     |---|---|---|---|---|---|
                     | **MergeSort** | O(n log n) | O(n log n) | O(n log n) | O(n) | ✅ Yes |
                     | **QuickSort** | O(n log n) | O(n log n) | O(n²) | O(log n) | ❌ No |
                     | **HeapSort** | O(n log n) | O(n log n) | O(n log n) | O(1) | ❌ No |
+                    | **Bubble Sort** | O(n) | O(n²) | O(n²) | O(1) | ✅ Yes |
+                    | **Insertion Sort** | O(n) | O(n²) | O(n²) | O(1) | ✅ Yes |
                     | **Binary Search** | O(1) | O(log n) | O(log n) | O(1) | N/A |
                     
-                    #### 💡 Key Takeaway:
-                    - Use **MergeSort** when stability is required or sorting Linked Lists.
-                    - Use **QuickSort** (with randomized pivot) for best cache locality and in-place general sorting.
+                    #### 💡 When to use what:
+                    - **MergeSort** → Need stability or sorting Linked Lists.
+                    - **QuickSort** → General in-place sorting (randomized pivot avoids worst case).
+                    - **Insertion Sort** → Nearly sorted small arrays (adaptive, O(n) best case).
+                    - **Binary Search** → Only works on **sorted arrays** — halves search space each step.
+                    
+                    ```python
+                    # Binary Search (Python):
+                    def binary_search(arr, target):
+                        lo, hi = 0, len(arr) - 1
+                        while lo <= hi:
+                            mid = (lo + hi) // 2
+                            if arr[mid] == target: return mid
+                            elif arr[mid] < target: lo = mid + 1
+                            else: hi = mid - 1
+                        return -1
+                    ```
                     """;
         }
 
-        if (q.contains("machine learning") || q.contains("overfitting") || q.contains("gradient descent") || q.contains("supervised")) {
+        // 11. Machine Learning / AI
+        if (q.contains("machine learning") || q.contains("overfitting") || q.contains("gradient descent") || q.contains("supervised") || q.contains("neural network") || q.contains("deep learning") || q.contains("classification") || q.contains("regression") || q.contains("clustering")) {
             return """
-                    ### 🤖 Machine Learning Fundamentals
+                    ### 🤖 Machine Learning & AI Fundamentals
                     
                     #### 1. Core Learning Paradigms:
-                    - **Supervised Learning:** Labeled data `(X, y)`. E.g., Regression (house prices), Classification (spam detection).
-                    - **Unsupervised Learning:** Unlabeled data. E.g., K-Means Clustering, PCA dimension reduction.
-                    - **Reinforcement Learning:** Agent learns via rewards & penalties (Q-Learning, Policy Gradients).
+                    - **Supervised Learning:** Labeled data `(X, y)` → Model learns a mapping.
+                      - *Regression:* Predict continuous values (house prices, stock price).
+                      - *Classification:* Predict categories (spam/not-spam, digit recognition).
+                    - **Unsupervised Learning:** No labels → Find hidden patterns.
+                      - *Clustering:* K-Means, DBSCAN.
+                      - *Dimensionality Reduction:* PCA, t-SNE.
+                    - **Reinforcement Learning:** Agent learns via rewards/penalties (Q-Learning, Policy Gradient).
                     
-                    #### 2. The Overfitting Problem:
-                    - **Overfitting:** Model memorizes training noise; high training accuracy, poor test generalization (High Variance).
-                    - **Underfitting:** Model too simple to capture trends (High Bias).
+                    #### 2. Overfitting vs Underfitting:
+                    | Problem | Cause | Solution |
+                    |---|---|---|
+                    | **Overfitting** (High Variance) | Model too complex, memorizes noise | Regularization (L1/L2), Dropout, More data |
+                    | **Underfitting** (High Bias) | Model too simple | Add features, increase model complexity |
                     
-                    #### 🛡️ Techniques to Prevent Overfitting:
-                    - **Regularization:** L1 (Lasso - sparsity) and L2 (Ridge - weight shrinking).
-                    - **Cross-Validation:** K-Fold cross validation ensures robust metric estimation.
-                    - **Dropout:** Randomly deactivates neurons during neural network training.
-                    - **Early Stopping:** Halt training when validation loss begins to rise.
+                    #### 3. Gradient Descent:
+                    - Optimization algorithm to minimize a **Loss Function** `L(θ)`.
+                    - Update rule: `θ = θ - α × ∇L(θ)` (α = learning rate)
+                    - **SGD:** Update per sample. **Mini-batch GD:** Update per batch. **Batch GD:** Update after all samples.
+                    
+                    #### 4. Key Algorithms to Know:
+                    - Linear/Logistic Regression, Decision Trees, Random Forest, SVM, K-NN, Naive Bayes.
+                    - Neural Networks: Input → Hidden layers (ReLU) → Output (Softmax/Sigmoid).
                     """;
         }
 
-        if (q.contains("deadlock") || q.contains("semaphore") || q.contains("paging") || q.contains("operating system") || q.contains("os")) {
+        // 12. Operating Systems — Deadlock, Scheduling, Memory
+        if (q.contains("deadlock") || q.contains("semaphore") || q.contains("paging") || q.contains("segmentation") || q.contains("operating system") || q.contains(" os ") || q.contains("process scheduling") || q.contains("virtual memory") || q.contains("page fault") || q.contains("mutex") || q.contains("thread")) {
             return """
-                    ### 💻 Operating Systems: Deadlock & Synchronization
+                    ### 💻 Operating Systems: Core Concepts
                     
-                    #### 🔒 The 4 Coffman Conditions for Deadlock:
-                    Deadlock occurs if and only if **all four** conditions hold simultaneously:
-                    1. **Mutual Exclusion:** Resources cannot be shared simultaneously.
-                    2. **Hold and Wait:** A process holds resources while waiting for additional ones.
-                    3. **No Preemption:** Resources cannot be forcibly revoked from a process.
-                    4. **Circular Wait:** A closed chain of processes exists where each process holds resources needed by the next.
+                    #### 🔒 Deadlock — 4 Coffman Conditions (ALL must hold):
+                    1. **Mutual Exclusion** — Resources can't be shared simultaneously.
+                    2. **Hold and Wait** — A process holds ≥1 resource while waiting for more.
+                    3. **No Preemption** — Resources can't be forcibly taken away.
+                    4. **Circular Wait** — Closed chain P1→P2→P3→...→P1 of waiting processes.
                     
                     #### 🚦 Mutex vs Semaphore:
-                    - **Mutex:** A locking mechanism (ownership semantics) — only the thread that locked the mutex can unlock it.
-                    - **Counting Semaphore:** A signaling mechanism (integer counter) — any thread can signal/release permits.
-                    """;
-        }
-
-        if (q.contains("tcp") || q.contains("udp") || q.contains("osi") || q.contains("handshake") || q.contains("network")) {
-            return """
-                    ### 🌐 Computer Networks: TCP vs UDP & Handshake
-                    
-                    #### 🤝 TCP 3-Way Handshake (Connection Establishment):
-                    1. **SYN:** Client sends `SYN (seq=x)` to server.
-                    2. **SYN-ACK:** Server responds with `SYN-ACK (seq=y, ack=x+1)`.
-                    3. **ACK:** Client confirms with `ACK (ack=y+1)`. Connection established!
-                    
-                    | Metric | TCP (Transmission Control Protocol) | UDP (User Datagram Protocol) |
+                    | Feature | Mutex | Semaphore |
                     |---|---|---|
-                    | **Connection** | Connection-oriented (Handshake required) | Connectionless |
-                    | **Reliability** | Guaranteed delivery, ordering, retransmission | Unreliable best-effort |
-                    | **Speed & Overhead** | Higher latency, 20-60 byte header | Ultra-low latency, 8 byte header |
-                    | **Use Cases** | Web (HTTP/HTTPS), Email (SMTP), File transfer | Video streaming, Gaming, DNS, VoIP |
+                    | **Ownership** | Locked/unlocked by same thread | Any thread can signal |
+                    | **Count** | Binary (0 or 1) | Can be > 1 (counting semaphore) |
+                    | **Use case** | Mutual exclusion | Signaling, resource counting |
+                    
+                    #### 📋 CPU Scheduling Algorithms:
+                    - **FCFS** — First-Come-First-Served (non-preemptive, can cause convoy effect).
+                    - **SJF** — Shortest Job First (optimal average waiting time, needs future knowledge).
+                    - **Round Robin** — Each process gets a time quantum (fair, good for time-sharing).
+                    - **Priority Scheduling** — Higher priority runs first (risk of starvation → use aging).
+                    
+                    #### 🧠 Memory Management:
+                    - **Paging:** Fixed-size memory frames. Eliminates external fragmentation. Page Table maps virtual → physical.
+                    - **Page Fault:** Accessed page not in RAM → OS loads it from disk (expensive).
+                    - **Virtual Memory:** Allows programs larger than RAM using disk as extension (Demand Paging).
                     """;
         }
 
-        if (q.contains("practice") || q.contains("question") || q.contains("quiz") || q.contains("interview")) {
+        // 13. Computer Networks
+        if (q.contains("tcp") || q.contains("udp") || q.contains("osi") || q.contains("handshake") || q.contains("network") || q.contains("http") || q.contains("dns") || q.contains("ip address") || q.contains("routing") || q.contains("subnet")) {
             return """
-                    ### 📝 University & Placement Practice Challenge
+                    ### 🌐 Computer Networks: Protocols & Architecture
                     
-                    Here are 3 core interview questions for **%s**:
+                    #### 🤝 TCP 3-Way Handshake (Connection Setup):
+                    1. **SYN** — Client sends `SYN(seq=x)` to server.
+                    2. **SYN-ACK** — Server responds `SYN-ACK(seq=y, ack=x+1)`.
+                    3. **ACK** — Client confirms `ACK(ack=y+1)`. Connection established!
                     
-                    1. **Conceptual Question:**
-                       *Explain how Hash Tables achieve O(1) average lookup time. What happens during a collision, and how does Quadratic Probing differ from Chaining?*
+                    #### 🔄 TCP vs UDP:
+                    | Feature | TCP | UDP |
+                    |---|---|---|
+                    | Connection | Connection-oriented | Connectionless |
+                    | Reliability | Guaranteed (ACKs, retransmission) | Unreliable (best-effort) |
+                    | Order | In-order delivery | No ordering |
+                    | Speed | Slower (overhead) | Faster |
+                    | Use Cases | HTTP, Email, FTP | DNS, Video streaming, Gaming |
                     
-                    2. **Algorithmic Problem:**
-                       *Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`. Can you solve it in O(n) time using extra memory?*
+                    #### 📚 OSI 7 Layers (Remember: "Please Do Not Throw Sausage Pizza Away"):
+                    | Layer | Name | Example Protocols |
+                    |---|---|---|
+                    | 7 | Application | HTTP, FTP, SMTP, DNS |
+                    | 6 | Presentation | SSL/TLS, JPEG, MPEG |
+                    | 5 | Session | NetBIOS, RPC |
+                    | 4 | Transport | TCP, UDP |
+                    | 3 | Network | IP, ICMP, OSPF |
+                    | 2 | Data Link | Ethernet, MAC, ARP |
+                    | 1 | Physical | Cables, Wi-Fi signals |
+                    """;
+        }
+
+        // 14. Object-Oriented Programming (OOP)
+        if (q.contains("oop") || q.contains("object oriented") || q.contains("inheritance") || q.contains("polymorphism") || q.contains("encapsulation") || q.contains("abstraction") || q.contains("interface") || q.contains("abstract class") || q.contains("design pattern") || q.contains("solid principle")) {
+            return """
+                    ### 🏗️ Object-Oriented Programming (OOP)
                     
-                    3. **System & Architecture Question:**
-                       *Why does indexing a database column accelerate SELECT queries but slow down INSERT/UPDATE operations?*
+                    #### 4 Pillars of OOP:
+                    1. **Encapsulation** — Bundle data (fields) + behavior (methods) into a class. Hide internal state via `private` fields + public getters/setters.
+                       - *Benefit:* Data hiding, controlled access.
                     
-                    💡 **Hint for Question 2:** Use a `HashMap<Integer, Integer>` storing `complement -> index` as you iterate once through the array!
+                    2. **Inheritance** — A subclass inherits fields and methods from a parent class (`extends`).
+                       - *Benefit:* Code reuse, IS-A relationships.
+                       - *Example:* `Dog extends Animal` → Dog inherits `eat()`, `breathe()`.
+                    
+                    3. **Polymorphism** — One interface, many implementations.
+                       - **Compile-time (Overloading):** Same method name, different parameters.
+                       - **Runtime (Overriding):** Subclass provides its own implementation of a parent method (`@Override`).
+                    
+                    4. **Abstraction** — Show only what's necessary; hide implementation details.
+                       - **Abstract Class:** Cannot be instantiated; can have abstract + concrete methods.
+                       - **Interface:** Pure contract; all methods are abstract (Java 8+ allows default methods).
+                    
+                    #### 🔑 Key Differences:
+                    | | Abstract Class | Interface |
+                    |---|---|---|
+                    | Instantiation | ❌ Cannot instantiate | ❌ Cannot instantiate |
+                    | Methods | Abstract + Concrete | Abstract (+ default/static in Java 8+) |
+                    | Inheritance | Single inheritance | Multiple interfaces allowed |
+                    | State | Can have instance variables | Only constants |
+                    
+                    #### 🏛️ SOLID Principles (Clean Code Foundation):
+                    - **S**ingle Responsibility — One class, one reason to change.
+                    - **O**pen/Closed — Open for extension, closed for modification.
+                    - **L**iskov Substitution — Subclass should be usable wherever parent is used.
+                    - **I**nterface Segregation — Prefer small specific interfaces over one fat interface.
+                    - **D**ependency Inversion — Depend on abstractions, not concrete implementations.
+                    """;
+        }
+
+        // 15. Data Structures: Linked List, Stack, Queue
+        if (q.contains("linked list") || q.contains("stack") || q.contains("queue") || q.contains("deque") || q.contains("array list") || q.contains("data structure")) {
+            return """
+                    ### 🔗 Linear Data Structures: Linked List, Stack, Queue
+                    
+                    #### 📎 Linked List:
+                    - Collection of **nodes** where each node stores data + a pointer to the next node.
+                    - **Singly Linked:** One pointer (→ next). **Doubly Linked:** Two pointers (← prev, next →).
+                    - **Advantages:** O(1) insertion/deletion at known position (vs O(n) for arrays).
+                    - **Disadvantage:** No random access (O(n) search).
+                    
+                    #### 🥞 Stack (LIFO — Last In, First Out):
+                    - Operations: `push()`, `pop()`, `peek()` — all **O(1)**.
+                    - **Applications:** Function call stack, undo/redo, expression parsing (balanced parentheses), DFS.
+                    
+                    ```java
+                    Stack<Integer> s = new Stack<>();
+                    s.push(10); s.push(20);
+                    System.out.println(s.pop()); // 20 (LIFO)
+                    ```
+                    
+                    #### 🎢 Queue (FIFO — First In, First Out):
+                    - Operations: `enqueue()`, `dequeue()`, `front()` — all **O(1)**.
+                    - **Applications:** BFS, task scheduling, printer queue, sliding window problems.
+                    - **Priority Queue:** Dequeue highest/lowest priority element first (backed by a Heap).
+                    
+                    #### 🏆 Array vs Linked List:
+                    | Operation | Array | Linked List |
+                    |---|---|---|
+                    | Access by index | O(1) | O(n) |
+                    | Insert at end | O(1) amortized | O(1) |
+                    | Insert at middle | O(n) | O(1) if pointer known |
+                    | Memory | Contiguous (cache-friendly) | Non-contiguous |
+                    """;
+        }
+
+        // 16. Trees (BST, AVL, Heap)
+        if (q.contains("tree") || q.contains("bst") || q.contains("binary search tree") || q.contains("avl") || q.contains("heap") || q.contains("trie") || q.contains("inorder") || q.contains("preorder") || q.contains("postorder") || q.contains("binary tree")) {
+            return """
+                    ### 🌲 Trees: BST, AVL, Heap & Traversals
+                    
+                    #### 🔵 Binary Search Tree (BST):
+                    - **Property:** For every node, left subtree < node < right subtree.
+                    - **Operations:** Search, Insert, Delete — all **O(h)** where h = tree height.
+                    - **Balanced BST (AVL/Red-Black):** h = O(log n) → O(log n) operations.
+                    - **Degenerate BST** (sorted insertion) → becomes a linked list → O(n) height.
+                    
+                    #### 🌴 Tree Traversals (DFS):
+                    | Traversal | Visit Order | Use Case |
+                    |---|---|---|
+                    | **Inorder** (L → Root → R) | Sorted output for BST | Get sorted sequence |
+                    | **Preorder** (Root → L → R) | Copy a tree | Serialize tree structure |
+                    | **Postorder** (L → R → Root) | Delete a tree | Expression evaluation |
+                    
+                    #### 📐 AVL Tree:
+                    - Self-balancing BST. Balance Factor = |height(left) - height(right)| ≤ 1.
+                    - Rebalanced via **rotations** (Left, Right, Left-Right, Right-Left) on every insert/delete.
+                    - Guarantees **O(log n)** for all operations.
+                    
+                    #### 🏔️ Heap (Max-Heap / Min-Heap):
+                    - Complete Binary Tree where parent ≥ children (Max-Heap) or parent ≤ children (Min-Heap).
+                    - `insert()` and `extractMax()/extractMin()` — **O(log n)**.
+                    - **Heapify:** Convert array to heap — **O(n)**.
+                    - **Applications:** Priority Queues, HeapSort, Dijkstra's algorithm, Kth largest element.
+                    """;
+        }
+
+        // 17. Graphs (BFS, DFS, Topological Sort)
+        if (q.contains("graph") || q.contains("bfs") || q.contains("dfs") || q.contains("topological sort") || q.contains("spanning tree") || q.contains("kruskal") || q.contains("prim") || q.contains("adjacency matrix") || q.contains("cycle detection")) {
+            return """
+                    ### 📊 Graph Algorithms: BFS, DFS, Spanning Trees
+                    
+                    #### 🔵 Graph Representations:
+                    - **Adjacency Matrix:** O(V²) space, O(1) edge lookup. Good for dense graphs.
+                    - **Adjacency List:** O(V + E) space, O(degree) edge lookup. Good for sparse graphs.
+                    
+                    #### 🔍 BFS (Breadth-First Search):
+                    - Uses a **Queue**. Explores level by level from source.
+                    - ⏱️ O(V + E) | Finds **shortest path** in unweighted graphs.
+                    - Applications: Shortest path, level-order traversal, bipartite check.
+                    
+                    #### 🔍 DFS (Depth-First Search):
+                    - Uses a **Stack** (or recursion). Explores as deep as possible before backtracking.
+                    - ⏱️ O(V + E) | Applications: Cycle detection, topological sort, connected components, maze solving.
+                    
+                    #### 📐 Topological Sort (DAG only):
+                    - Linear ordering of vertices such that for every edge `u → v`, `u` comes before `v`.
+                    - **Kahn's Algorithm (BFS-based):** Track in-degrees; process 0-in-degree nodes first.
+                    - **DFS-based:** Push node to stack after all neighbors processed; reverse stack = topological order.
+                    
+                    #### 🌳 Minimum Spanning Tree (MST):
+                    | Algorithm | Approach | Complexity |
+                    |---|---|---|
+                    | **Kruskal's** | Sort edges by weight; add edge if no cycle (Union-Find) | O(E log E) |
+                    | **Prim's** | Greedily grow MST from source using min-heap | O(E log V) |
+                    """;
+        }
+
+        // 18. Hashing
+        if (q.contains("hash") || q.contains("hashmap") || q.contains("hashtable") || q.contains("collision") || q.contains("hash function") || q.contains("chaining") || q.contains("open addressing")) {
+            return """
+                    ### #️⃣ Hashing & Hash Tables
+                    
+                    #### How Hash Tables Work:
+                    1. Apply a **hash function** `h(key)` to map the key to a bucket index: `index = key % tableSize`.
+                    2. Store the value at that bucket.
+                    3. For lookup: compute `h(key)` and access the bucket — **O(1) average**.
+                    
+                    #### ⚡ Complexity:
+                    | Operation | Average | Worst Case |
+                    |---|---|---|
+                    | Insert | O(1) | O(n) |
+                    | Search | O(1) | O(n) |
+                    | Delete | O(1) | O(n) |
+                    
+                    *(Worst case occurs with many collisions / poor hash function)*
+                    
+                    #### 💥 Collision Resolution:
+                    1. **Chaining (Separate Chaining):** Each bucket holds a linked list of all keys that hash to it.
+                       - Load Factor `λ = n/m`. Average search time = `O(1 + λ)`.
+                    
+                    2. **Open Addressing:** All entries stored in the table itself (no external lists).
+                       - **Linear Probing:** Check `(h(k) + i) % m` for i=0,1,2...
+                       - **Quadratic Probing:** Check `(h(k) + i²) % m` — reduces primary clustering.
+                       - **Double Hashing:** `(h1(k) + i × h2(k)) % m` — best distribution.
+                    
+                    #### 🏆 Java HashMap Internals:
+                    - Default initial capacity: **16 buckets**, load factor: **0.75**.
+                    - When load factor exceeded → **rehash** (double the table, re-insert all entries) → O(n) amortized.
+                    - Java 8+: Buckets with ≥8 elements convert from LinkedList to **Red-Black Tree** → O(log n) worst case.
+                    """;
+        }
+
+        // 19. Recursion
+        if (q.contains("recursion") || q.contains("recursive") || q.contains("base case") || q.contains("call stack") || q.contains("backtracking") || q.contains("n queens") || q.contains("tower of hanoi")) {
+            return """
+                    ### 🔄 Recursion & Backtracking
+                    
+                    #### What is Recursion?
+                    A function that calls **itself** with a smaller/simpler version of the problem, until it reaches a **base case**.
+                    
+                    #### Structure of Every Recursive Function:
+                    ```python
+                    def solve(n):
+                        # 1. Base Case (stopping condition)
+                        if n == 0:
+                            return 0
+                        # 2. Recursive Case (progress toward base case)
+                        return n + solve(n - 1)
+                    ```
+                    
+                    #### 🏰 Tower of Hanoi:
+                    - Move n disks from source → target using auxiliary peg.
+                    - **Minimum moves = 2ⁿ - 1**
+                    ```python
+                    def hanoi(n, src, aux, tgt):
+                        if n == 1:
+                            print(f"Move disk 1: {src} → {tgt}")
+                            return
+                        hanoi(n-1, src, tgt, aux)
+                        print(f"Move disk {n}: {src} → {tgt}")
+                        hanoi(n-1, aux, src, tgt)
+                    ```
+                    
+                    #### 🎯 Backtracking:
+                    - Explore all possibilities and **undo** (backtrack) when a path fails.
+                    - **Template:**
+                    ```python
+                    def backtrack(state):
+                        if goal_reached(state): record_solution(); return
+                        for choice in get_choices(state):
+                            if is_valid(choice):
+                                make_choice(choice)
+                                backtrack(state)
+                                undo_choice(choice)  # BACKTRACK
+                    ```
+                    - *Classic problems:* N-Queens, Sudoku Solver, Word Search, Permutations, Subsets.
+                    """;
+        }
+
+        // 20. Cloud Computing / Web Development
+        if (q.contains("cloud") || q.contains("aws") || q.contains("docker") || q.contains("kubernetes") || q.contains("microservice") || q.contains("rest api") || q.contains("http method") || q.contains("spring boot") || q.contains("react") || q.contains("api gateway") || q.contains("load balancer")) {
+            return """
+                    ### ☁️ Cloud Computing & Web Development
+                    
+                    #### 🐳 Docker & Containers:
+                    - **Docker:** Package app + dependencies into a portable **container** (runs anywhere consistently).
+                    - **Image vs Container:** Image = blueprint (read-only). Container = running instance of an image.
+                    - **Key commands:** `docker build`, `docker run`, `docker push`, `docker-compose up`
+                    
+                    #### ⚡ Microservices Architecture:
+                    - Break a monolithic app into **small, independent services** that communicate via REST/gRPC/message queues.
+                    - **Advantages:** Independent deployment, scalability, fault isolation, technology diversity.
+                    - **Challenges:** Network latency, distributed tracing, data consistency across services.
+                    
+                    #### 🌐 REST API Fundamentals:
+                    | HTTP Method | Action | Example |
+                    |---|---|---|
+                    | **GET** | Read resource | `GET /api/students/1` |
+                    | **POST** | Create resource | `POST /api/students` |
+                    | **PUT** | Full update | `PUT /api/students/1` |
+                    | **PATCH** | Partial update | `PATCH /api/students/1` |
+                    | **DELETE** | Remove resource | `DELETE /api/students/1` |
+                    
+                    #### 📊 HTTP Status Codes:
+                    - **2xx Success:** 200 OK, 201 Created, 204 No Content.
+                    - **4xx Client Error:** 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found.
+                    - **5xx Server Error:** 500 Internal Server Error, 503 Service Unavailable.
+                    """;
+        }
+
+        // 21. Compiler Design / Automata Theory
+        if (q.contains("compiler") || q.contains("lexer") || q.contains("parser") || q.contains("automata") || q.contains("finite automaton") || q.contains("dfa") || q.contains("nfa") || q.contains("context free grammar") || q.contains("cfg") || q.contains("regular expression")) {
+            return """
+                    ### 🧮 Compiler Design & Automata Theory
+                    
+                    #### ⚙️ Phases of Compilation:
+                    1. **Lexical Analysis (Scanner):** Source code → Tokens (keywords, identifiers, literals). Uses DFA/Regular Expressions.
+                    2. **Syntax Analysis (Parser):** Tokens → Parse Tree using Context-Free Grammar (CFG). Detects syntax errors.
+                    3. **Semantic Analysis:** Type checking, scope resolution, semantic errors.
+                    4. **Intermediate Code Generation:** AST → 3-address code or TAC.
+                    5. **Optimization:** Dead code elimination, loop unrolling, constant folding.
+                    6. **Code Generation:** Assembly / Machine code output.
+                    
+                    #### 🤖 Automata Theory Quick Reference:
+                    | Automaton | Memory | Recognizes |
+                    |---|---|---|
+                    | **DFA/NFA** | None (finite states) | Regular Languages |
+                    | **PDA (Pushdown Automaton)** | Stack | Context-Free Languages |
+                    | **Turing Machine** | Infinite tape | Recursively Enumerable Languages |
+                    
+                    #### 📐 DFA vs NFA:
+                    - **DFA:** Deterministic — exactly one transition per (state, symbol) pair.
+                    - **NFA:** Non-deterministic — multiple or zero transitions allowed (ε-transitions too).
+                    - Both are **equivalent in power** (every NFA can be converted to a DFA via subset construction).
+                    """;
+        }
+
+        // 22. Software Engineering / SDLC
+        if (q.contains("sdlc") || q.contains("agile") || q.contains("scrum") || q.contains("waterfall") || q.contains("software engineering") || q.contains("software testing") || q.contains("unit test") || q.contains("integration test") || q.contains("git") || q.contains("version control")) {
+            return """
+                    ### 🛠️ Software Engineering & SDLC
+                    
+                    #### 📋 SDLC Models:
+                    | Model | Approach | Best For |
+                    |---|---|---|
+                    | **Waterfall** | Sequential phases (Requirements→Design→Build→Test→Deploy) | Fixed requirements, small projects |
+                    | **Agile** | Iterative sprints, adaptive to change | Evolving requirements |
+                    | **Scrum** | Agile framework: 2-week sprints, Daily Standups, Sprint Review | Product development teams |
+                    | **DevOps** | Continuous Integration + Continuous Deployment (CI/CD) | Fast release cycles |
+                    
+                    #### 🧪 Software Testing Levels:
+                    1. **Unit Testing** — Test individual functions/methods in isolation (JUnit, pytest).
+                    2. **Integration Testing** — Test how components work together.
+                    3. **System Testing** — End-to-end testing of the full system.
+                    4. **Acceptance Testing (UAT)** — Client validates the system meets requirements.
+                    
+                    #### 🔀 Git Version Control Essentials:
+                    ```bash
+                    git clone <url>          # Copy remote repo locally
+                    git add .                # Stage all changes
+                    git commit -m "message"  # Save snapshot
+                    git push origin main     # Upload to remote
+                    git pull                 # Fetch + merge remote changes
+                    git branch feature-x     # Create new branch
+                    git merge feature-x      # Merge branch into current
+                    ```
+                    
+                    #### 🏗️ Design Patterns (Gang of Four):
+                    - **Singleton:** One instance globally (e.g., DB connection pool).
+                    - **Factory:** Create objects without specifying concrete class.
+                    - **Observer:** Notify multiple subscribers of state changes (Event system).
+                    - **Strategy:** Swap algorithms at runtime (e.g., sorting strategy).
+                    """;
+        }
+
+        // 23. Practice / Quiz / Interview questions
+        if (q.contains("practice") || q.contains("quiz") || q.contains("interview") || q.contains("exam question") || q.contains("test me") || q.contains("give me question")) {
+            return """
+                    ### 📝 Interview & Exam Practice Challenge
+                    
+                    Here are **5 must-know questions** for **%s**:
+                    
+                    **Q1. Data Structures:**
+                    *Explain how a HashMap achieves O(1) average lookup. What is a hash collision and how is it resolved via Chaining vs Open Addressing?*
+                    
+                    **Q2. Algorithms:**
+                    *Given an unsorted array, find the two numbers that add up to a target sum. Can you do it in O(n) time?*
+                    💡 Hint: Use a HashSet — for each element, check if `target - element` exists in the set.
+                    
+                    **Q3. Database:**
+                    *What is the difference between a Clustered and Non-Clustered Index? Why does adding an index speed up SELECT but slow down INSERT?*
+                    
+                    **Q4. OS / Concurrency:**
+                    *What are the 4 conditions for Deadlock? If you could only prevent one condition, which would you choose and why?*
+                    
+                    **Q5. OOP / System Design:**
+                    *Explain the difference between an Abstract Class and an Interface in Java. When would you use each?*
+                    
+                    Need answers, hints, or more questions on a specific topic? Just ask!
                     """.formatted(subject);
         }
 
+        // 24. Intelligent open-ended fallback — acknowledge the actual query
+        String querySnippet = query.length() > 60 ? query.substring(0, 60) + "..." : query;
+        String[] words = q.split("\\s+");
+        String topicWord = "";
+        for (String w : words) {
+            if (w.length() > 3 && !w.matches("(what|when|where|which|explain|about|tell|give|show|how|does|the|and|for|can|you|are|is|do|me|an|a|this|that|with)")) {
+                topicWord = w;
+                break;
+            }
+        }
+        String topicHint = topicWord.isEmpty() ? subject : Character.toUpperCase(topicWord.charAt(0)) + topicWord.substring(1);
+
         return """
-                ### 🎓 EduPulse Academic Guidance
+                ### 📖 EduBot: %s
                 
-                **Query:** "%s"
-                **Subject Context:** %s
+                Great question! Here's what you need to know about **%s**:
                 
-                #### 📚 Core Concept Breakdown:
-                - Master foundational definitions before diving into advanced implementations.
-                - When revising for semester exams, practice deriving time & space complexities on paper.
-                - Break complex algorithms into concrete visual state diagrams or trace tables.
+                #### 🔑 Key Points:
+                - **Definition:** Start by understanding the core concept of **%s** from first principles. What problem does it solve, and why was it introduced?
+                - **How it works:** Break it down step by step — what are the inputs, the process, and the expected outputs?
+                - **Real-world use:** Where is **%s** used in practice? Think about real systems, software, or practical applications.
+                - **Complexity or trade-offs:** Are there performance considerations, edge cases, or trade-offs to know?
                 
-                #### 💡 Effective Learning Strategy (Feynman Technique):
-                1. Pick a concept and explain it aloud in plain terms as if teaching a beginner.
-                2. Identify gaps where you struggle or rely on technical jargon.
-                3. Review course lecture notes and standard textbooks to clarify ambiguous areas.
-                4. Create a concise one-page cheat sheet or summary diagram.
+                #### 💡 Study Strategy for "%s":
+                1. **Understand First Principles** — Find the formal definition and fundamental motivation.
+                2. **Draw a Diagram or Trace** — Visualize the concept with a concrete example or state chart.
+                3. **Write Code or Derive a Proof** — Hands-on implementation reinforces understanding deeply.
+                4. **Teach It Back (Feynman Technique)** — Explain it aloud in simple terms without jargon.
+                5. **Practice Variations** — Solve 2-3 standard problems related to this topic.
                 
-                *Feel free to ask for code implementations, practice problems, or step-by-step algorithms!*
-                """.formatted(query, subject);
+                #### 🚀 Ask Me More Specifically:
+                You can ask things like:
+                - *"Explain %s with a simple code example"*
+                - *"What is the time complexity or trade-offs of %s?"*
+                - *"Give me 3 interview questions on %s"*
+                - *"Compare %s with alternatives"*
+                
+                I'm here to help you master any subject — feel free to ask a follow-up doubt! 🎓
+                """.formatted(topicHint, topicHint, topicHint, topicHint, querySnippet, topicHint, topicHint, topicHint, topicHint);
     }
 }
 
