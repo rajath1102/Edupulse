@@ -660,7 +660,7 @@ public class AiRecommendationService {
                     """;
         }
 
-        if (q.contains("normalization") || q.contains("1nf") || q.contains("2nf") || q.contains("3nf") || q.contains("bcnf") || q.contains("sql")) {
+        if (q.contains("normalization") || q.contains("1nf") || q.contains("2nf") || q.contains("3nf") || q.contains("bcnf")) {
             return """
                     ### 🗄️ Database Normalization (1NF to BCNF)
                     
@@ -681,6 +681,70 @@ public class AiRecommendationService {
                     4. **BCNF (Boyce-Codd Normal Form):**
                        - Stricter version of 3NF.
                        - For every functional dependency `X -> Y`, `X` must be a **Super Key**.
+                    """;
+        }
+
+        if (q.contains("transaction") || q.contains("acid") || q.contains("concurrency") || q.contains("serializab") || q.contains("2pl")) {
+            return """
+                    ### 💳 Database Transactions & ACID Properties
+                    
+                    A **Transaction** is a logical unit of database processing that includes one or more database operations (READ, WRITE, COMMIT, ROLLBACK).
+                    
+                    #### 🏛️ The 4 ACID Properties:
+                    1. **Atomicity ("All or Nothing"):**
+                       - Entire transaction executes completely, or rolls back entirely upon failure. No partial state is saved.
+                       - *Example:* Bank transfer from Account A to B: deducting money from A without crediting B is impossible.
+                    
+                    2. **Consistency:**
+                       - The database moves from one valid state to another valid state, preserving all integrity constraints, foreign keys, and triggers.
+                    
+                    3. **Isolation:**
+                       - Concurrent transactions execute independently without interfering with each other. Intermediate states of transaction T1 are invisible to T2.
+                       - *Isolation Levels:* Read Uncommitted, Read Committed, Repeatable Read, Serializable.
+                    
+                    4. **Durability:**
+                       - Once a transaction commits, its changes survive permanently, even in the event of power loss or system crashes (maintained via Write-Ahead Logging / WAL).
+                    
+                    #### 🔒 Concurrency Control & Two-Phase Locking (2PL):
+                    - **Growing Phase:** Locks acquired, none released.
+                    - **Shrinking Phase:** Locks released, none acquired.
+                    - Guarantees **Conflict Serializability** and prevents dirty reads, lost updates, and phantom reads.
+                    """;
+        }
+
+        if (q.contains("join") || q.contains("indexing") || q.contains("index") || q.contains("b-tree") || q.contains("b+ tree")) {
+            return """
+                    ### 🔍 SQL Joins & Database Indexing
+                    
+                    #### 🔗 Types of SQL Joins:
+                    - **INNER JOIN:** Returns records that have matching values in both tables.
+                    - **LEFT (OUTER) JOIN:** Returns all records from the left table, and matching records from the right table (NULL if no match).
+                    - **RIGHT (OUTER) JOIN:** Returns all records from the right table, and matched from the left.
+                    - **FULL (OUTER) JOIN:** Returns all records when there is a match in either left or right table.
+                    - **CROSS JOIN:** Cartesian product (every row of Table A paired with every row of Table B).
+                    
+                    #### ⚡ How Indexes Work (B+ Tree):
+                    - A database index is an auxiliary data structure (typically a **B+ Tree**) that enables O(log N) lookups instead of full table scans (O(N)).
+                    - **Clustered Index:** Determines physical storage order of rows on disk (only 1 per table, usually Primary Key).
+                    - **Non-Clustered Index:** Separate structure storing column values and pointers to data rows.
+                    - **Trade-off:** Faster SELECT queries vs. slower INSERT/UPDATE/DELETE (because the index tree must be rebalanced).
+                    """;
+        }
+
+        if (q.contains("sort") || q.contains("quicksort") || q.contains("mergesort") || q.contains("binary search")) {
+            return """
+                    ### ⚡ Sorting Algorithms & Binary Search
+                    
+                    | Algorithm | Best Time | Average Time | Worst Time | Space | Stable? |
+                    |---|---|---|---|---|---|
+                    | **MergeSort** | O(n log n) | O(n log n) | O(n log n) | O(n) | ✅ Yes |
+                    | **QuickSort** | O(n log n) | O(n log n) | O(n²) | O(log n) | ❌ No |
+                    | **HeapSort** | O(n log n) | O(n log n) | O(n log n) | O(1) | ❌ No |
+                    | **Binary Search** | O(1) | O(log n) | O(log n) | O(1) | N/A |
+                    
+                    #### 💡 Key Takeaway:
+                    - Use **MergeSort** when stability is required or sorting Linked Lists.
+                    - Use **QuickSort** (with randomized pivot) for best cache locality and in-place general sorting.
                     """;
         }
 
