@@ -3,7 +3,7 @@
  * Centralized API service with JWT authentication and environment-aware baseURL.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://edupulse-1-2ssh.onrender.com';
 
 /**
  * Returns authorization headers with JWT Bearer token if present.
