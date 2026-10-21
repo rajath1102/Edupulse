@@ -17,35 +17,36 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Check saved session
-    const savedToken = localStorage.getItem('edupulse_jwt');
-    const savedUser = localStorage.getItem('edupulse_user');
+    async function initAuth() {
+      const savedToken = localStorage.getItem('edupulse_jwt');
+      const savedUser = localStorage.getItem('edupulse_user');
 
-    if (savedToken && savedUser) {
+      if (savedToken && savedUser) {
+        try {
+          // Validate existing token against backend
+          const verifiedProfile = await api.getCurrentUser();
+          const parsed = JSON.parse(savedUser);
+          setUser({ ...parsed, ...verifiedProfile });
+          setLoading(false);
+          return;
+        } catch (err) {
+          console.warn('Stored token is expired or invalid. Performing auto-login...', err);
+          localStorage.removeItem('edupulse_jwt');
+          localStorage.removeItem('edupulse_user');
+        }
+      }
+
+      // Default to teacher demo account on first load for seamless experience
       try {
-        setUser(JSON.parse(savedUser));
-        // Verify token with backend
-        api.getCurrentUser()
-          .then(data => {
-            setUser(prev => ({ ...prev, ...data }));
-          })
-          .catch(() => {
-            // Token invalid or expired, auto-login with default demo user (teacher)
-            quickLogin('teacher').catch(console.error);
-          })
-          .finally(() => setLoading(false));
-        return;
-      } catch {
-        localStorage.removeItem('edupulse_user');
+        await quickLogin('teacher');
+      } catch (err) {
+        console.warn('Initial demo login fallback notice:', err);
+      } finally {
+        setLoading(false);
       }
     }
 
-    // Default to teacher demo account on first load for seamless beginner experience
-    quickLogin('teacher')
-      .catch(err => {
-        console.warn('Initial demo login fallback notice:', err);
-      })
-      .finally(() => setLoading(false));
+    initAuth();
   }, []);
 
   async function login(username, password) {

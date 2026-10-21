@@ -26,8 +26,10 @@ export function getAuthHeaders(extraHeaders = {}) {
  */
 async function handleResponse(res) {
   if (res.status === 401) {
-    // Unauthorized - token might be expired
-    console.warn('Session expired or unauthorized.');
+    // Unauthorized - token is expired or invalid, clear immediately
+    console.warn('Session expired or unauthorized. Clearing stored token.');
+    localStorage.removeItem('edupulse_jwt');
+    localStorage.removeItem('edupulse_user');
   }
   if (!res.ok) {
     let errorMessage = `Request failed (HTTP ${res.status})`;
@@ -187,7 +189,6 @@ export async function saveBatchPerformance(records) {
   });
   return handleResponse(res);
 }
-
 
 export async function askEduBot(message, subject = 'General Academic', history = []) {
   const res = await fetch(`${API_BASE}/api/ai/chat`, {

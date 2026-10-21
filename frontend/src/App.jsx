@@ -26,7 +26,7 @@ function MainApp() {
   const myStudentId = user?.studentId;
 
   // Load students from Spring Boot REST API
-  async function loadStudents() {
+  async function loadStudents(isRetry = false) {
     setLoadingStudents(true);
     try {
       const data = await api.getAllStudents();
@@ -35,11 +35,19 @@ function MainApp() {
       // Auto-select student based on role
       if (isStudent && myStudentId) {
         setSelectedStudentId(String(myStudentId));
-      } else if (data && data.length > 0 && !selectedStudentId) {
-        setSelectedStudentId(String(data[0].id));
+      } else if (data && data.length > 0) {
+        if (!selectedStudentId || !data.some(s => String(s.id) === String(selectedStudentId))) {
+          setSelectedStudentId(String(data[0].id));
+        }
       }
     } catch (err) {
       console.warn('Student list fetch notice:', err);
+      // If initial fetch failed while session was re-authenticating, retry once
+      if (!isRetry) {
+        setTimeout(() => {
+          loadStudents(true);
+        }, 800);
+      }
     } finally {
       setLoadingStudents(false);
     }
