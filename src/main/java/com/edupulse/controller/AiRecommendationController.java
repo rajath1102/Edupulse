@@ -28,7 +28,7 @@ public class AiRecommendationController {
     /**
      * POST /api/ai/recommendation/{studentId} - Generate AI study plan and recommendation
      */
-    @PostMapping("/recommendation/{studentId}")
+    @PostMapping({"/recommendation/{studentId}", "/recommendations/{studentId}"})
     public ResponseEntity<AiRecommendationResponseDTO> getRecommendation(
             @PathVariable Long studentId,
             @AuthenticationPrincipal UserPrincipal currentUser) {
