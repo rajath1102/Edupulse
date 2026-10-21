@@ -1,6 +1,8 @@
 package com.edupulse.controller;
 
 import com.edupulse.dto.AiRecommendationResponseDTO;
+import com.edupulse.dto.ChatRequestDTO;
+import com.edupulse.dto.ChatResponseDTO;
 import com.edupulse.model.Role;
 import com.edupulse.security.UserPrincipal;
 import com.edupulse.service.AiRecommendationService;
@@ -52,6 +54,17 @@ public class AiRecommendationController {
             throw new AccessDeniedException("Access Denied: Only teachers and administrators can scan exam sheets.");
         }
         com.edupulse.dto.ScanMarksResponseDTO response = aiRecommendationService.scanExamSheet(request.getImageBase64(), request.getMimeType());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/ai/chat - EduBot AI Academic Tutor and Doubt Solver
+     */
+    @PostMapping("/chat")
+    public ResponseEntity<ChatResponseDTO> chat(
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody ChatRequestDTO request,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        ChatResponseDTO response = aiRecommendationService.chatWithEduBot(request, currentUser);
         return ResponseEntity.ok(response);
     }
 }

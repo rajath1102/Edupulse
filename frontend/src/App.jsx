@@ -8,6 +8,8 @@ import Students from './pages/Students';
 import Analytics from './pages/Analytics';
 import AiScanner from './pages/AiScanner';
 import AiAdvisor from './pages/AiAdvisor';
+import EduBotPage from './pages/EduBotPage';
+import EduBotWidget from './components/EduBotWidget';
 import SettingsPage from './pages/Settings';
 import * as api from './api';
 import './App.css';
@@ -102,6 +104,10 @@ function MainApp() {
             />
           )}
 
+          {currentSection === 'edubot' && (
+            <EduBotPage />
+          )}
+
           {currentSection === 'students' && (
             <Students
               students={visibleStudents}
@@ -142,6 +148,9 @@ function MainApp() {
           )}
         </main>
       </div>
+
+      {/* Floating Global EduBot Chat Launcher */}
+      <EduBotWidget onNavigateToFullPage={() => setCurrentSection('edubot')} />
 
       <LoginModal
         isOpen={isLoginModalOpen}

@@ -1,5 +1,6 @@
 package com.edupulse;
 
+import com.edupulse.dto.ChatRequestDTO;
 import com.edupulse.dto.LoginRequestDTO;
 import com.edupulse.dto.RegisterRequestDTO;
 import com.edupulse.model.Role;
@@ -13,6 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -163,5 +166,33 @@ class SecurityAndAuthIntegrationTests {
         mockMvc.perform(get("/api/performance/student/2")
                         .header("Authorization", "Bearer " + studentToken))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testEduBotChatEndpointSuccess() throws Exception {
+        // 1. Login as student
+        LoginRequestDTO studentLogin = new LoginRequestDTO("student", "student123");
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(studentLogin)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
+
+        // 2. Chat with EduBot
+        ChatRequestDTO chatRequest = new ChatRequestDTO(
+                "Explain Dijkstra shortest path algorithm",
+                "Data Structures & Algorithms",
+                Collections.emptyList()
+        );
+
+        mockMvc.perform(post("/api/ai/chat")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(chatRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reply").isNotEmpty())
+                .andExpect(jsonPath("$.aiSource").isNotEmpty());
     }
 }

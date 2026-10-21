@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const SECTION_TITLES = {
   'dashboard':  '📊 Student Performance Dashboard',
+  'edubot':     '💬 EduBot — AI Syllabus & Doubt Solver',
   'students':   '👥 Student Directory & Records',
   'analytics':  '📈 Academic Risk Analytics',
   'ai-scanner': '📷 AI Exam Answer-Sheet & Marks Scanner',

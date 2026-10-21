@@ -14,10 +14,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.edupulse.dto.ChatMessageDTO;
+import com.edupulse.dto.ChatRequestDTO;
+import com.edupulse.dto.ChatResponseDTO;
 import com.edupulse.dto.ScanMarksResponseDTO;
 import com.edupulse.dto.ScannedRecordDTO;
 import com.edupulse.model.Student;
 import com.edupulse.repository.StudentRepository;
+import com.edupulse.security.UserPrincipal;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -429,5 +433,304 @@ public class AiRecommendationService {
                 String.format("Successfully parsed %d records from exam mark sheet (%d matched to registered students).", records.size(), matchedCount)
         );
     }
+
+    /**
+     * EduBot - Conversational AI Academic Tutor and Doubt Solver.
+     * Powered by Google Gemini with an intelligent heuristic academic fallback engine.
+     */
+    public ChatResponseDTO chatWithEduBot(ChatRequestDTO request, UserPrincipal currentUser) {
+        String query = request.getMessage() != null ? request.getMessage().trim() : "";
+        String subject = (request.getSubject() != null && !request.getSubject().isBlank())
+                ? request.getSubject()
+                : "General Academic";
+        String studentName = (currentUser != null && currentUser.getUsername() != null)
+                ? currentUser.getUsername()
+                : "Student";
+
+        if (query.isEmpty()) {
+            return new ChatResponseDTO("Hello! I am **EduBot**, your AI Academic Tutor. What subject or concept would you like to master today?", "EduBot", subject);
+        }
+
+        String systemPrompt = String.format("""
+                You are EduBot, an encouraging, articulate, and elite university-level AI Academic Tutor and Coursework Mentor for EduPulse.
+                You are currently assisting student: %s with the subject: %s.
+                
+                Instructional Guidelines:
+                1. Provide clear, structured explanations using conceptual intuition, bullet points, and real-world analogies.
+                2. Include clean, formatted code snippets (in Java, Python, C++, SQL, or JavaScript) whenever relevant or requested.
+                3. If the user asks for practice questions or interview preparation, provide high-quality problems with step-by-step solutions or hints.
+                4. Keep explanations engaging, academically rigorous, and direct.
+                5. Maintain an encouraging and supportive tone for student academic success.
+                """, studentName, subject);
+
+        // Attempt Gemini API call
+        if (geminiApiKey != null && !geminiApiKey.isBlank()) {
+            try {
+                String reply = callGeminiChatApi(systemPrompt, request.getHistory(), query);
+                if (reply != null && !reply.isBlank()) {
+                    return new ChatResponseDTO(reply, "Google Gemini AI (" + geminiModel + ")", subject);
+                }
+            } catch (Exception ex) {
+                logger.warn("Gemini Chat API notice: {}. Using EduBot Knowledge Engine.", ex.getMessage());
+            }
+        }
+
+        // Adaptive Fallback Knowledge Engine
+        String fallbackReply = generateEduBotFallbackReply(query, subject);
+        return new ChatResponseDTO(fallbackReply, "EduBot Adaptive Knowledge Engine", subject);
+    }
+
+    private String callGeminiChatApi(String systemPrompt, List<ChatMessageDTO> history, String userMessage) throws Exception {
+        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, geminiModel, geminiApiKey);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        List<Map<String, Object>> contents = new ArrayList<>();
+
+        // Add history turns (limit to last 6 turns to keep context lightweight)
+        if (history != null && !history.isEmpty()) {
+            int start = Math.max(0, history.size() - 6);
+            for (int i = start; i < history.size(); i++) {
+                ChatMessageDTO h = history.get(i);
+                if (h.getText() == null || h.getText().isBlank()) continue;
+                String role = "model".equalsIgnoreCase(h.getRole()) ? "model" : "user";
+                Map<String, Object> part = Collections.singletonMap("text", h.getText());
+                Map<String, Object> turn = new HashMap<>();
+                turn.put("role", role);
+                turn.put("parts", Collections.singletonList(part));
+                contents.add(turn);
+            }
+        }
+
+        // Current turn: inject system directive context if first turn or prefix
+        String formattedMessage = contents.isEmpty()
+                ? systemPrompt + "\n\nStudent Doubt:\n" + userMessage
+                : userMessage;
+
+        Map<String, Object> currentPart = Collections.singletonMap("text", formattedMessage);
+        Map<String, Object> currentTurn = new HashMap<>();
+        currentTurn.put("role", "user");
+        currentTurn.put("parts", Collections.singletonList(currentPart));
+        contents.add(currentTurn);
+
+        Map<String, Object> requestBody = Collections.singletonMap("contents", contents);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode candidates = root.path("candidates");
+            if (candidates.isArray() && !candidates.isEmpty()) {
+                JsonNode parts = candidates.get(0).path("content").path("parts");
+                if (parts.isArray() && !parts.isEmpty()) {
+                    return parts.get(0).path("text").asText();
+                }
+            }
+        }
+
+        throw new RuntimeException("Empty or unrecognized response from Gemini Chat API");
+    }
+
+    private String generateEduBotFallbackReply(String query, String subject) {
+        String q = query.toLowerCase();
+
+        if (q.contains("dijkstra") || q.contains("shortest path")) {
+            return """
+                    ### 🧭 Dijkstra's Shortest Path Algorithm
+                    
+                    **Core Idea:**
+                    Dijkstra's Algorithm finds the shortest path from a single source node to all other nodes in a weighted graph with **non-negative edge weights**. It employs a **greedy strategy**.
+                    
+                    #### ⚙️ How It Works (Step-by-Step):
+                    1. Initialize distances: Set `dist[source] = 0` and all other vertices to `Infinity`.
+                    2. Use a **Min-Priority Queue** (min-heap) to always pick the vertex `u` with the smallest tentative distance.
+                    3. For every neighbor `v` of `u`, perform **Relaxation**:
+                       `if (dist[u] + weight(u, v) < dist[v]) { dist[v] = dist[u] + weight(u, v); }`
+                    4. Mark `u` as visited and repeat until the queue is empty.
+                    
+                    ```java
+                    // Java Relaxation snippet:
+                    if (dist[u] + edge.weight < dist[v]) {
+                        dist[v] = dist[u] + edge.weight;
+                        pq.offer(new Node(v, dist[v]));
+                    }
+                    ```
+                    
+                    #### ⏱️ Complexity:
+                    - **Time Complexity:** `O((V + E) log V)` using an adjacency list and binary min-heap.
+                    - **Space Complexity:** `O(V)` for distance array and priority queue.
+                    
+                    💡 *Note:* Does **not** work correctly with negative weights (use Bellman-Ford instead!).
+                    """;
+        }
+
+        if (q.contains("dynamic programming") || q.contains("dp") || q.contains("knapsack") || q.contains("memoiz")) {
+            return """
+                    ### 🧩 Dynamic Programming (DP) Demystified
+                    
+                    **Core Principle:**
+                    Dynamic Programming solves complex problems by breaking them down into **overlapping subproblems** and remembering previously solved states (**optimal substructure**).
+                    
+                    #### ⚖️ Top-Down vs Bottom-Up:
+                    - **Memoization (Top-Down):** Write standard recursion, then cache return values in an array or HashMap (`dp[n]`).
+                    - **Tabulation (Bottom-Up):** Iteratively fill an array from base cases up to `n`. Avoids call-stack overhead.
+                    
+                    #### 🎒 Classic 0/1 Knapsack State Transition:
+                    ```python
+                    # If item weight fits in remaining capacity W:
+                    dp[i][w] = max(dp[i-1][w], values[i-1] + dp[i-1][w - weights[i-1]])
+                    # Otherwise, skip item:
+                    dp[i][w] = dp[i-1][w]
+                    ```
+                    
+                    #### 🎯 4 Steps to Solve Any DP Problem:
+                    1. Define the state clearly (e.g. `dp[i]` = max profit up to index `i`).
+                    2. Find the base cases (`dp[0] = 0`).
+                    3. Formulate the recurrence relation.
+                    4. Determine computation order (e.g., left to right).
+                    """;
+        }
+
+        if (q.contains("big o") || q.contains("complexity") || q.contains("time complexity")) {
+            return """
+                    ### 📊 Big-O Notation Quick Reference
+                    
+                    Big-O measures the **worst-case asymptotic growth rate** of an algorithm as input size `n` grows towards infinity.
+                    
+                    | Notation | Name | Typical Example | Performance |
+                    |---|---|---|---|
+                    | **O(1)** | Constant | Hash map lookup, array index | ⚡ Instantaneous |
+                    | **O(log n)** | Logarithmic | Binary Search, Balanced BST | 🚀 Extremely fast |
+                    | **O(n)** | Linear | Array linear traversal | 🟢 Scalable |
+                    | **O(n log n)** | Linearithmic | Merge Sort, QuickSort (avg), HeapSort | 🟡 Best general sort |
+                    | **O(n²)** | Quadratic | Nested loops, Bubble/Selection Sort | 🟠 Slow for large n |
+                    | **O(2ⁿ)** | Exponential | Recursive Fibonacci, Subsets | 🔴 Impractical > 30 |
+                    
+                    💡 **Pro Tip:** In technical interviews, always state space complexity alongside time complexity!
+                    """;
+        }
+
+        if (q.contains("normalization") || q.contains("1nf") || q.contains("2nf") || q.contains("3nf") || q.contains("bcnf") || q.contains("sql")) {
+            return """
+                    ### 🗄️ Database Normalization (1NF to BCNF)
+                    
+                    **Objective:** Eliminate data redundancy and prevent insertion, update, and deletion anomalies.
+                    
+                    1. **1NF (First Normal Form):**
+                       - Atomic values only (no comma-separated lists or repeating groups).
+                       - Each row must have a unique identifier (Primary Key).
+                    
+                    2. **2NF (Second Normal Form):**
+                       - Must be in 1NF.
+                       - **No Partial Dependencies**: Every non-prime attribute must depend on the *entire* candidate key, not just a subset of a composite key.
+                    
+                    3. **3NF (Third Normal Form):**
+                       - Must be in 2NF.
+                       - **No Transitive Dependencies**: Non-prime attributes must not depend on other non-prime attributes (`A -> B -> C`).
+                    
+                    4. **BCNF (Boyce-Codd Normal Form):**
+                       - Stricter version of 3NF.
+                       - For every functional dependency `X -> Y`, `X` must be a **Super Key**.
+                    """;
+        }
+
+        if (q.contains("machine learning") || q.contains("overfitting") || q.contains("gradient descent") || q.contains("supervised")) {
+            return """
+                    ### 🤖 Machine Learning Fundamentals
+                    
+                    #### 1. Core Learning Paradigms:
+                    - **Supervised Learning:** Labeled data `(X, y)`. E.g., Regression (house prices), Classification (spam detection).
+                    - **Unsupervised Learning:** Unlabeled data. E.g., K-Means Clustering, PCA dimension reduction.
+                    - **Reinforcement Learning:** Agent learns via rewards & penalties (Q-Learning, Policy Gradients).
+                    
+                    #### 2. The Overfitting Problem:
+                    - **Overfitting:** Model memorizes training noise; high training accuracy, poor test generalization (High Variance).
+                    - **Underfitting:** Model too simple to capture trends (High Bias).
+                    
+                    #### 🛡️ Techniques to Prevent Overfitting:
+                    - **Regularization:** L1 (Lasso - sparsity) and L2 (Ridge - weight shrinking).
+                    - **Cross-Validation:** K-Fold cross validation ensures robust metric estimation.
+                    - **Dropout:** Randomly deactivates neurons during neural network training.
+                    - **Early Stopping:** Halt training when validation loss begins to rise.
+                    """;
+        }
+
+        if (q.contains("deadlock") || q.contains("semaphore") || q.contains("paging") || q.contains("operating system") || q.contains("os")) {
+            return """
+                    ### 💻 Operating Systems: Deadlock & Synchronization
+                    
+                    #### 🔒 The 4 Coffman Conditions for Deadlock:
+                    Deadlock occurs if and only if **all four** conditions hold simultaneously:
+                    1. **Mutual Exclusion:** Resources cannot be shared simultaneously.
+                    2. **Hold and Wait:** A process holds resources while waiting for additional ones.
+                    3. **No Preemption:** Resources cannot be forcibly revoked from a process.
+                    4. **Circular Wait:** A closed chain of processes exists where each process holds resources needed by the next.
+                    
+                    #### 🚦 Mutex vs Semaphore:
+                    - **Mutex:** A locking mechanism (ownership semantics) — only the thread that locked the mutex can unlock it.
+                    - **Counting Semaphore:** A signaling mechanism (integer counter) — any thread can signal/release permits.
+                    """;
+        }
+
+        if (q.contains("tcp") || q.contains("udp") || q.contains("osi") || q.contains("handshake") || q.contains("network")) {
+            return """
+                    ### 🌐 Computer Networks: TCP vs UDP & Handshake
+                    
+                    #### 🤝 TCP 3-Way Handshake (Connection Establishment):
+                    1. **SYN:** Client sends `SYN (seq=x)` to server.
+                    2. **SYN-ACK:** Server responds with `SYN-ACK (seq=y, ack=x+1)`.
+                    3. **ACK:** Client confirms with `ACK (ack=y+1)`. Connection established!
+                    
+                    | Metric | TCP (Transmission Control Protocol) | UDP (User Datagram Protocol) |
+                    |---|---|---|
+                    | **Connection** | Connection-oriented (Handshake required) | Connectionless |
+                    | **Reliability** | Guaranteed delivery, ordering, retransmission | Unreliable best-effort |
+                    | **Speed & Overhead** | Higher latency, 20-60 byte header | Ultra-low latency, 8 byte header |
+                    | **Use Cases** | Web (HTTP/HTTPS), Email (SMTP), File transfer | Video streaming, Gaming, DNS, VoIP |
+                    """;
+        }
+
+        if (q.contains("practice") || q.contains("question") || q.contains("quiz") || q.contains("interview")) {
+            return """
+                    ### 📝 University & Placement Practice Challenge
+                    
+                    Here are 3 core interview questions for **%s**:
+                    
+                    1. **Conceptual Question:**
+                       *Explain how Hash Tables achieve O(1) average lookup time. What happens during a collision, and how does Quadratic Probing differ from Chaining?*
+                    
+                    2. **Algorithmic Problem:**
+                       *Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`. Can you solve it in O(n) time using extra memory?*
+                    
+                    3. **System & Architecture Question:**
+                       *Why does indexing a database column accelerate SELECT queries but slow down INSERT/UPDATE operations?*
+                    
+                    💡 **Hint for Question 2:** Use a `HashMap<Integer, Integer>` storing `complement -> index` as you iterate once through the array!
+                    """.formatted(subject);
+        }
+
+        return """
+                ### 🎓 EduPulse Academic Guidance
+                
+                **Query:** "%s"
+                **Subject Context:** %s
+                
+                #### 📚 Core Concept Breakdown:
+                - Master foundational definitions before diving into advanced implementations.
+                - When revising for semester exams, practice deriving time & space complexities on paper.
+                - Break complex algorithms into concrete visual state diagrams or trace tables.
+                
+                #### 💡 Effective Learning Strategy (Feynman Technique):
+                1. Pick a concept and explain it aloud in plain terms as if teaching a beginner.
+                2. Identify gaps where you struggle or rely on technical jargon.
+                3. Review course lecture notes and standard textbooks to clarify ambiguous areas.
+                4. Create a concise one-page cheat sheet or summary diagram.
+                
+                *Feel free to ask for code implementations, practice problems, or step-by-step algorithms!*
+                """.formatted(query, subject);
+    }
 }
+
 

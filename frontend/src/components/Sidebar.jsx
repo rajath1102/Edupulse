@@ -9,7 +9,8 @@ import {
   LogOut,
   ShieldCheck,
   UserCheck,
-  Scan
+  Scan,
+  Bot
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,12 +21,14 @@ export default function Sidebar({ currentSection, onSelectSection, onOpenLoginMo
 
   const navItems = isStudent ? [
     { id: 'dashboard', label: 'My Dashboard', icon: LayoutDashboard },
+    { id: 'edubot', label: 'EduBot AI Tutor', icon: Bot },
     { id: 'students', label: 'My Academic Profile', icon: Users },
     { id: 'analytics', label: 'My Analytics', icon: BarChart3 },
     { id: 'ai-advisor', label: 'My AI Study Plan', icon: Sparkles },
     { id: 'settings', label: 'Settings & Cloud', icon: Settings },
   ] : [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'edubot', label: 'EduBot AI Tutor', icon: Bot },
     { id: 'students', label: 'All Students', icon: Users },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'ai-scanner', label: 'AI Exam Scanner', icon: Scan },

@@ -187,3 +187,13 @@ export async function saveBatchPerformance(records) {
   });
   return handleResponse(res);
 }
+
+
+export async function askEduBot(message, subject = 'General Academic', history = []) {
+  const res = await fetch(`${API_BASE}/api/ai/chat`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ message, subject, history })
+  });
+  return handleResponse(res);
+}
