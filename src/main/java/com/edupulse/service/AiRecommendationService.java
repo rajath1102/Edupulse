@@ -534,7 +534,55 @@ public class AiRecommendationService {
     }
 
     private String generateEduBotFallbackReply(String query, String subject) {
-        String q = query.toLowerCase();
+        String q = query.trim().toLowerCase();
+
+        // 1. Natural conversational greetings
+        if (q.matches("^(hi|hello|hey|heyy|heyyy|howdy|hola|greetings|good\\s*(morning|afternoon|evening)|yo)(\\s*|!|\\.|\\?)*$")
+                || q.equals("hi") || q.equals("hello") || q.equals("hey") || q.startsWith("hi ") || q.startsWith("hello ") || q.startsWith("hey ")) {
+            return """
+                    ### 👋 Hello! Welcome to EduPulse!
+                    
+                    I am **EduBot**, your university AI Academic Tutor and Coursework Mentor.
+                    
+                    Here are some things you can ask me right now:
+                    - 🧭 **Algorithms:** *"Explain Dijkstra's Algorithm step-by-step"*
+                    - 🧩 **Dynamic Programming:** *"What is the difference between Memoization and Tabulation?"*
+                    - 🗄️ **Databases:** *"Explain 1NF, 2NF, and 3NF Normalization with examples"*
+                    - 🤖 **Machine Learning:** *"What causes Overfitting and how do we prevent it?"*
+                    - 💻 **Operating Systems:** *"What are the 4 Deadlock conditions?"*
+                    - 📝 **Placement Prep:** *"Give me 3 practice interview questions on Data Structures"*
+                    
+                    What concept, problem, or subject would you like to master today?
+                    """;
+        }
+
+        // 2. Identity & capabilities
+        if (q.contains("who are you") || q.contains("what can you do") || q.contains("what is your name") || q.contains("help me")) {
+            return """
+                    ### 🤖 About EduBot
+                    
+                    I am **EduBot**, an interactive AI academic tutor embedded directly inside **EduPulse**.
+                    
+                    I help students:
+                    1. **Break down complex engineering & CS concepts** with intuitive analogies.
+                    2. **Provide verified code examples** in Java, Python, C++, and SQL.
+                    3. **Analyze time & space complexities** (Big-O analysis).
+                    4. **Prepare for semester exams and campus placement interviews**.
+                    
+                    Feel free to type any academic doubt or pick one of the quick topics!
+                    """;
+        }
+
+        // 3. Thank you & pleasantries
+        if (q.contains("thank you") || q.contains("thanks") || q.equals("thx") || q.contains("awesome") || q.contains("great job")) {
+            return """
+                    ### 😊 You're very welcome!
+                    
+                    Keep up the great study momentum! If you encounter any tricky algorithms, exam doubts, or coding problems, just ask.
+                    
+                    Happy learning! 🚀
+                    """;
+        }
 
         if (q.contains("dijkstra") || q.contains("shortest path")) {
             return """
