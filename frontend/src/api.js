@@ -198,3 +198,60 @@ export async function askEduBot(message, subject = 'General Academic', history =
   });
   return handleResponse(res);
 }
+
+// ==========================================
+// SYLLABUS RAG APIS
+// ==========================================
+
+export async function uploadSyllabusDocument(payload) {
+  const res = await fetch(`${API_BASE}/api/ai/syllabus/upload`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(res);
+}
+
+export async function getAllSyllabusDocuments() {
+  const res = await fetch(`${API_BASE}/api/ai/syllabus`, {
+    headers: getAuthHeaders()
+  });
+  return handleResponse(res);
+}
+
+export async function getSyllabusDocumentById(id) {
+  const res = await fetch(`${API_BASE}/api/ai/syllabus/${id}`, {
+    headers: getAuthHeaders()
+  });
+  return handleResponse(res);
+}
+
+export async function deleteSyllabusDocument(id) {
+  const res = await fetch(`${API_BASE}/api/ai/syllabus/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  return handleResponse(res);
+}
+
+export async function querySyllabusRAG(payload) {
+  const res = await fetch(`${API_BASE}/api/ai/syllabus/query`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(res);
+}
+
+// ==========================================
+// MOCK EXAM PAPER GENERATOR APIS
+// ==========================================
+
+export async function generateMockExamPaper(payload) {
+  const res = await fetch(`${API_BASE}/api/ai/mock-exam/generate`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(res);
+}

@@ -9,6 +9,8 @@ import Analytics from './pages/Analytics';
 import AiScanner from './pages/AiScanner';
 import AiAdvisor from './pages/AiAdvisor';
 import EduBotPage from './pages/EduBotPage';
+import SyllabusRagPage from './pages/SyllabusRagPage';
+import MockExamPage from './pages/MockExamPage';
 import EduBotWidget from './components/EduBotWidget';
 import SettingsPage from './pages/Settings';
 import * as api from './api';
@@ -114,6 +116,14 @@ function MainApp() {
 
           {currentSection === 'edubot' && (
             <EduBotPage />
+          )}
+
+          {currentSection === 'syllabus-rag' && (
+            <SyllabusRagPage />
+          )}
+
+          {currentSection === 'mock-exam' && (
+            <MockExamPage />
           )}
 
           {currentSection === 'students' && (
