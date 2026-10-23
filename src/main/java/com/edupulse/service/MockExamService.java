@@ -134,10 +134,10 @@ public class MockExamService {
                 Include header block (Subject code, Course name, Max marks, Time, General Instructions).
                 
                 ### SECTION A: Short Answer Questions (2 Marks Each)
-                Provide 5 compulsory questions covering core definitions, distinctions, or quick calculations.
+                Provide 5 compulsory questions covering core definitions, distinctions, or quick calculations (Total: 10 Marks).
                 
                 ### SECTION B: Analytical & Descriptive Questions (10 Marks Each)
-                Provide 4 descriptive/derivation/algorithmic questions with sub-parts (a) and (b), with internal choice (e.g. Q2 OR Q3).
+                Provide exactly 3 comprehensive descriptive/derivation/algorithmic questions (10 Marks Each) with sub-parts (a) and (b) and internal choices (Total: 30 Marks).
                 
                 ---
                 
@@ -234,8 +234,8 @@ public class MockExamService {
                 ---
                 
                 ### General Instructions:
-                1. Answer **ALL** questions in **Section A** (10 Marks).
-                2. Answer any **FOUR** questions from **Section B** (40 Marks).
+                1. Answer **ALL 5 questions** in **Section A** (5 × 2 = 10 Marks).
+                2. Answer **ALL THREE questions** in **Section B** (3 × 10 = 30 Marks).
                 3. Assume suitable missing data if any, and state assumptions clearly.
                 4. Neat visual diagrams, state charts, and algorithmic traces carry marks.
                 
@@ -251,7 +251,7 @@ public class MockExamService {
                 
                 ---
                 
-                ### 📋 SECTION B: Comprehensive Analytical Questions (4 × 10 = 40 Marks)
+                ### 📋 SECTION B: Comprehensive Analytical Questions (3 × 10 = 30 Marks)
                 
                 #### **Question 6** *(10 Marks)*
                 **(a)** Explain Dijkstra's shortest path algorithm step-by-step using an adjacency list and binary min-heap. Derive its time complexity `O((V + E) log V)`. *(5 Marks)*  
@@ -259,17 +259,15 @@ public class MockExamService {
                 
                 *— OR —*
                 
+                **(b alternate)** What are the four Coffman conditions necessary for a Deadlock to occur in an operating system? Explain how Banker's Algorithm avoids deadlocks. *(5 Marks)*
+                
                 #### **Question 7** *(10 Marks)*
-                **(a)** What are the four Coffman conditions necessary for a Deadlock to occur in an operating system? *(4 Marks)*  
-                **(b)** Explain Banker's Algorithm for deadlock avoidance with a numerical allocation and request matrix example. Demonstrate whether the system is in a safe state. *(6 Marks)*
+                **(a)** Discuss 3NF and BCNF database normalization forms. Illustrate a scenario where a relation is in 3NF but violates BCNF due to overlapping candidate keys. *(6 Marks)*  
+                **(b)** Describe the Two-Phase Locking (2PL) protocol. How does Strict 2PL prevent cascading aborts in concurrent transactions? *(4 Marks)*
                 
                 #### **Question 8** *(10 Marks)*
-                **(a)** Discuss the 3NF and BCNF database normalization forms. Illustrate a scenario where a relation is in 3NF but violates BCNF due to overlapping candidate keys. *(6 Marks)*  
-                **(b)** Describe the Two-Phase Locking (2PL) protocol. How does Strict 2PL prevent cascading aborts? *(4 Marks)*
-                
-                #### **Question 9** *(10 Marks)*
-                **(a)** Compare TCP and UDP across connection semantics, packet header overhead, reliability guarantees, and flow control. *(5 Marks)*  
-                **(b)** Diagram the TCP 3-Way Handshake connection establishment and 4-Way connection teardown, noting sequence and acknowledgment numbers. *(5 Marks)*
+                **(a)** Compare TCP and UDP across connection semantics, packet header overhead, reliability guarantees, and flow control mechanisms. *(5 Marks)*  
+                **(b)** Diagram the complete TCP 3-Way Handshake connection establishment and 4-Way connection teardown, noting sequence and acknowledgment numbers. *(5 Marks)*
                 """, subject, topic, difficulty, totalMarks, durationMinutes, topic);
 
         String answerKey = """
