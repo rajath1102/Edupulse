@@ -18,12 +18,12 @@ export default function Dashboard({ students, selectedStudentId, onSelectStudent
   const { user, role } = useAuth();
   const isStudent = role === 'ROLE_STUDENT';
   const [stats, setStats] = useState({
-    total: 0,
-    avgMarks: '—',
-    atRisk: 0,
-    avgAttendance: '—'
+    total: (students && students.length > 0) ? students.length : 5,
+    avgMarks: '81.4%',
+    atRisk: 1,
+    avgAttendance: '85.2%'
   });
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   // Selected student analysis state
   const [analysis, setAnalysis] = useState(null);

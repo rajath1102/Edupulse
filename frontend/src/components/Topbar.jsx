@@ -3,13 +3,15 @@ import { ShieldCheck, Clock, User, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const SECTION_TITLES = {
-  'dashboard':  '📊 Student Performance Dashboard',
-  'edubot':     '💬 EduBot — AI Syllabus & Doubt Solver',
-  'students':   '👥 Student Directory & Records',
-  'analytics':  '📈 Academic Risk Analytics',
-  'ai-scanner': '📷 AI Exam Answer-Sheet & Marks Scanner',
-  'ai-advisor': '✦ AI Study Plan Advisor',
-  'settings':   '⚙ Deployment & Cloud Settings'
+  'dashboard':    '📊 Student Performance Dashboard',
+  'edubot':       '💬 EduBot — AI Syllabus & Doubt Solver',
+  'syllabus-rag': '📚 Syllabus & Lecture Notes "RAG" Tutor',
+  'mock-exam':    '📄 Mock Exam Paper & Rubric Generator',
+  'students':     '👥 Student Directory & Records',
+  'analytics':    '📈 Academic Risk Analytics',
+  'ai-scanner':   '📷 AI Exam Answer-Sheet & Marks Scanner',
+  'ai-advisor':   '✦ AI Study Plan Advisor',
+  'settings':     '⚙ Deployment & Cloud Settings'
 };
 
 export default function Topbar({ currentSection, onOpenLoginModal }) {

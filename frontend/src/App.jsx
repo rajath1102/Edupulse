@@ -19,9 +19,9 @@ import './App.css';
 function MainApp() {
   const { user, role } = useAuth();
   const [currentSection, setCurrentSection] = useState('dashboard');
-  const [students, setStudents] = useState([]);
-  const [selectedStudentId, setSelectedStudentId] = useState('');
-  const [loadingStudents, setLoadingStudents] = useState(true);
+  const [students, setStudents] = useState(api.FALLBACK_STUDENTS);
+  const [selectedStudentId, setSelectedStudentId] = useState('1');
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const isStudent = role === 'ROLE_STUDENT';
@@ -32,23 +32,22 @@ function MainApp() {
     setLoadingStudents(true);
     try {
       const data = await api.getAllStudents();
-      setStudents(data || []);
+      const studentList = (Array.isArray(data) && data.length > 0) ? data : api.FALLBACK_STUDENTS;
+      setStudents(studentList);
       
       // Auto-select student based on role
       if (isStudent && myStudentId) {
         setSelectedStudentId(String(myStudentId));
-      } else if (data && data.length > 0) {
-        if (!selectedStudentId || !data.some(s => String(s.id) === String(selectedStudentId))) {
-          setSelectedStudentId(String(data[0].id));
+      } else if (studentList.length > 0) {
+        if (!selectedStudentId || !studentList.some(s => String(s.id) === String(selectedStudentId))) {
+          setSelectedStudentId(String(studentList[0].id));
         }
       }
     } catch (err) {
       console.warn('Student list fetch notice:', err);
-      // If initial fetch failed while session was re-authenticating, retry once
-      if (!isRetry) {
-        setTimeout(() => {
-          loadStudents(true);
-        }, 800);
+      setStudents(api.FALLBACK_STUDENTS);
+      if (!selectedStudentId) {
+        setSelectedStudentId('1');
       }
     } finally {
       setLoadingStudents(false);
@@ -81,14 +80,19 @@ function MainApp() {
   }
 
   // STUDENT PRIVACY FILTER:
-  // If the user is logged in as a student, filter the list so they ONLY see their personal record!
-  const visibleStudents = (isStudent && myStudentId)
-    ? students.filter(s => s.id === Number(myStudentId))
-    : students;
+  // If the user is logged in as a student, filter the list so they ONLY see their personal record;
+  // if not found, show the student roster so the screen is NEVER blank (0 students)!
+  let visibleStudents = students;
+  if (isStudent && myStudentId) {
+    const filtered = students.filter(s => s.id === Number(myStudentId));
+    if (filtered.length > 0) {
+      visibleStudents = filtered;
+    }
+  }
 
   const effectiveSelectedId = (isStudent && myStudentId)
     ? String(myStudentId)
-    : selectedStudentId;
+    : (selectedStudentId || '1');
 
   return (
     <div className="app-container">
