@@ -507,6 +507,20 @@ public class SyllabusRagService {
         logger.info("Seeded default sample university syllabus with {} chunks.", chunks.size());
     }
 
+    @Transactional
+    public SyllabusDocumentDTO updateDocument(Long id, String title, String subject) {
+        SyllabusDocument doc = documentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("SyllabusDocument", "id", id));
+        if (title != null && !title.isBlank()) {
+            doc.setTitle(title.trim());
+        }
+        if (subject != null && !subject.isBlank()) {
+            doc.setSubject(subject.trim());
+        }
+        SyllabusDocument saved = documentRepository.save(doc);
+        return mapToDTO(saved);
+    }
+
     private SyllabusDocumentDTO mapToDTO(SyllabusDocument doc) {
         String preview = doc.getRawText() != null
                 ? (doc.getRawText().length() > 200 ? doc.getRawText().substring(0, 200) + "..." : doc.getRawText())

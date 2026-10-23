@@ -315,6 +315,15 @@ export async function deleteSyllabusDocument(id) {
   return handleResponse(res);
 }
 
+export async function updateSyllabusDocument(id, data) {
+  const res = await fetch(`${API_BASE}/api/ai/syllabus/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data)
+  });
+  return handleResponse(res);
+}
+
 export async function querySyllabusRAG(payload) {
   const res = await fetch(`${API_BASE}/api/ai/syllabus/query`, {
     method: 'POST',

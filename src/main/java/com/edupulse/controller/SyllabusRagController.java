@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ai/syllabus")
@@ -62,6 +63,19 @@ public class SyllabusRagController {
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         syllabusRagService.deleteDocument(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * PUT /api/ai/syllabus/{id}
+     * Update subject or title of an existing uploaded syllabus document.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<SyllabusDocumentDTO> updateDocument(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> payload) {
+        String title = payload != null ? payload.get("title") : null;
+        String subject = payload != null ? payload.get("subject") : null;
+        return ResponseEntity.ok(syllabusRagService.updateDocument(id, title, subject));
     }
 
     /**

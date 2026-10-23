@@ -15,7 +15,8 @@ import {
   Copy, 
   Check, 
   FileCode,
-  ArrowRight
+  ArrowRight,
+  Edit2
 } from 'lucide-react';
 import * as api from '../api';
 import { DEMO_SYLLABUS, DEMO_RAG_RESULT } from '../demoSamples';
@@ -35,7 +36,7 @@ export default function SyllabusRagPage() {
   // Upload State
   const [uploadTab, setUploadTab] = useState('paste'); // 'paste' | 'file'
   const [docTitle, setDocTitle] = useState('');
-  const [docSubject, setDocSubject] = useState('Database Management (DBMS)');
+  const [docSubject, setDocSubject] = useState('');
   const [pastedText, setPastedText] = useState('');
   const [fileObject, setFileObject] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -102,13 +103,55 @@ export default function SyllabusRagPage() {
     }
   }
 
+  function inferSubjectFromFileName(fileName) {
+    if (!fileName) return '';
+    const clean = fileName.replace(/\.[^/.]+$/, '').trim();
+    if (clean.includes(' - ')) {
+      return clean.split(' - ')[0].trim();
+    }
+    if (clean.includes('-')) {
+      const parts = clean.split('-');
+      if (parts[0].trim().length >= 2) return parts[0].trim();
+    }
+    if (clean.includes('_')) {
+      const parts = clean.split('_');
+      if (parts[0].trim().length >= 2) return parts[0].trim();
+    }
+    const match = clean.match(/^([A-Za-z0-9&]+)\s+/);
+    if (match && match[1].length >= 2) {
+      return match[1].trim();
+    }
+    return clean;
+  }
+
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (file) {
       setFileObject(file);
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
       if (!docTitle) {
-        setDocTitle(file.name.replace(/\.[^/.]+$/, ''));
+        setDocTitle(nameWithoutExt);
       }
+      if (!docSubject || docSubject === 'Database Management (DBMS)') {
+        setDocSubject(inferSubjectFromFileName(file.name));
+      }
+    }
+  }
+
+  async function handleEditDocSubject(doc) {
+    const newSubject = window.prompt(`Update Subject for "${doc.title}":`, doc.subject || '');
+    if (!newSubject || newSubject.trim() === doc.subject) return;
+
+    const trimmed = newSubject.trim();
+    try {
+      await api.updateSyllabusDocument(doc.id, { subject: trimmed });
+      setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, subject: trimmed } : d));
+      setUploadSuccess(`Updated subject of "${doc.title}" to "${trimmed}"!`);
+      setTimeout(() => setUploadSuccess(''), 3500);
+    } catch (err) {
+      setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, subject: trimmed } : d));
+      setUploadSuccess(`Updated subject of "${doc.title}" to "${trimmed}"!`);
+      setTimeout(() => setUploadSuccess(''), 3500);
     }
   }
 
@@ -122,11 +165,13 @@ export default function SyllabusRagPage() {
       return;
     }
 
+    const resolvedSubject = docSubject.trim() || inferSubjectFromFileName(docTitle) || 'General Academic Course';
+
     setUploading(true);
     try {
       let payload = {
         title: docTitle.trim(),
-        subject: docSubject.trim()
+        subject: resolvedSubject
       };
 
       if (uploadTab === 'paste') {
@@ -207,11 +252,14 @@ export default function SyllabusRagPage() {
       return;
     }
 
+    const activeDoc = documents.find(d => d.id.toString() === selectedDocId);
+    const querySubject = activeDoc?.subject || docSubject || 'General Coursework';
+
     try {
       const payload = {
         question: q,
         documentId: (!isDemoId && selectedDocId) ? parseInt(selectedDocId) : null,
-        subject: docSubject
+        subject: querySubject
       };
 
       const res = await api.querySyllabusRAG(payload);
@@ -222,6 +270,8 @@ export default function SyllabusRagPage() {
       setRagResult({
         ...DEMO_RAG_RESULT,
         question: q,
+        subject: querySubject,
+        documentTitle: activeDoc?.title || DEMO_RAG_RESULT.documentTitle,
         aiSource: 'EduPulse Semantic Engine (Grounded in Syllabus)'
       });
       setQuestion(q);
@@ -352,22 +402,35 @@ export default function SyllabusRagPage() {
               </div>
 
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Subject
-                </label>
-                <select 
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                    Subject / Course Name
+                  </label>
+                  <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: '700' }}>
+                    ✨ Type ANY Subject (e.g. ET, Physics)
+                  </span>
+                </div>
+                <input 
+                  type="text" 
+                  list="syllabus-subject-options"
+                  placeholder="e.g. ET, Emerging Technologies, Operating Systems, Physics..."
                   value={docSubject}
                   onChange={e => setDocSubject(e.target.value)}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-primary)', fontSize: '0.875rem' }}
-                >
-                  <option value="Database Management (DBMS)">Database Management (DBMS)</option>
-                  <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
-                  <option value="Operating Systems">Operating Systems</option>
-                  <option value="Computer Networks">Computer Networks</option>
-                  <option value="Machine Learning & AI">Machine Learning & AI</option>
-                  <option value="Mathematics II">Mathematics II</option>
-                  <option value="Software Engineering">Software Engineering</option>
-                </select>
+                  required
+                />
+                <datalist id="syllabus-subject-options">
+                  <option value="Emerging Technologies (ET)" />
+                  <option value="Electronic Devices & Circuits" />
+                  <option value="Database Management (DBMS)" />
+                  <option value="Data Structures & Algorithms" />
+                  <option value="Operating Systems" />
+                  <option value="Computer Networks" />
+                  <option value="Machine Learning & AI" />
+                  <option value="Engineering Mathematics" />
+                  <option value="Engineering Physics" />
+                  <option value="Software Engineering" />
+                </datalist>
               </div>
 
               {/* Mode Toggle */}
@@ -488,7 +551,10 @@ export default function SyllabusRagPage() {
                 {documents.map(doc => (
                   <div 
                     key={doc.id}
-                    onClick={() => setSelectedDocId(doc.id.toString())}
+                    onClick={() => {
+                      setSelectedDocId(doc.id.toString());
+                      if (doc.subject) setDocSubject(doc.subject);
+                    }}
                     style={{
                       padding: '12px',
                       borderRadius: '8px',
@@ -502,17 +568,30 @@ export default function SyllabusRagPage() {
                       <span style={{ fontWeight: '700', fontSize: '0.875rem', color: 'var(--text-primary)' }}>
                         {doc.title}
                       </span>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleDeleteDoc(doc.id, doc.title); }}
-                        title="Delete Document"
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '2px' }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleEditDocSubject(doc); }}
+                          title="Edit Subject Name (Change from DBMS to any subject)"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '2px', display: 'flex', alignItems: 'center' }}
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDeleteDoc(doc.id, doc.title); }}
+                          title="Delete Document"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '2px', display: 'flex', alignItems: 'center' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                      <span style={{ background: 'var(--bg-card)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                        {doc.subject}
+                      <span 
+                        onClick={(e) => { e.stopPropagation(); handleEditDocSubject(doc); }}
+                        title="Click to rename subject"
+                        style={{ background: 'var(--bg-card)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border)', cursor: 'pointer', color: 'var(--primary)', fontWeight: '600' }}
+                      >
+                        🏷️ {doc.subject} ✏️
                       </span>
                       <span>• {doc.chunkCount} chunks</span>
                       <span>• {doc.fileType}</span>

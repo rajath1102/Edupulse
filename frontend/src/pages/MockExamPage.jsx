@@ -274,18 +274,38 @@ export default function MockExamPage() {
             <form onSubmit={handleGenerate}>
               
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Subject / Course
-                </label>
-                <select 
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                    Subject / Course
+                  </label>
+                  <span style={{ fontSize: '0.72rem', color: '#ea580c', fontWeight: '700' }}>
+                    ✨ Type ANY Subject (e.g. ET, Physics)
+                  </span>
+                </div>
+                <input 
+                  type="text" 
+                  list="mock-subjects-list"
                   value={subject}
                   onChange={e => setSubject(e.target.value)}
+                  placeholder="e.g. ET, Emerging Technologies, Operating Systems..."
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-primary)', fontSize: '0.875rem' }}
-                >
-                  {SAMPLE_SUBJECTS.map((s, idx) => (
-                    <option key={idx} value={s}>{s}</option>
+                  required
+                />
+                <datalist id="mock-subjects-list">
+                  {syllabusDocs.map(d => d.subject).filter(Boolean).map((subj, idx) => (
+                    <option key={`doc-${idx}`} value={subj} />
                   ))}
-                </select>
+                  <option value="Emerging Technologies (ET)" />
+                  <option value="Electronic Devices & Circuits (ET)" />
+                  <option value="Database Management (DBMS)" />
+                  <option value="Data Structures & Algorithms" />
+                  <option value="Operating Systems" />
+                  <option value="Computer Networks" />
+                  <option value="Machine Learning & AI" />
+                  <option value="Engineering Mathematics" />
+                  <option value="Engineering Physics" />
+                  <option value="Software Engineering" />
+                </datalist>
               </div>
 
               <div style={{ marginBottom: '14px' }}>
@@ -356,7 +376,15 @@ export default function MockExamPage() {
                   </label>
                   <select 
                     value={syllabusDocId}
-                    onChange={e => setSyllabusDocId(e.target.value)}
+                    onChange={e => {
+                      const chosenId = e.target.value;
+                      setSyllabusDocId(chosenId);
+                      const matched = syllabusDocs.find(d => d.id.toString() === chosenId);
+                      if (matched) {
+                        if (matched.subject) setSubject(matched.subject);
+                        if (matched.title) setTopic(matched.title);
+                      }
+                    }}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-primary)', fontSize: '0.875rem' }}
                   >
                     <option value="">None (Standard University Curriculum)</option>
