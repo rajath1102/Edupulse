@@ -90,7 +90,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // 2. Public Authentication Endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/ai/**").permitAll()
 
                         // 3. Student Management Permissions
                         // Students, Teachers, and Admins can view; only Teachers/Admins can create/update/delete
