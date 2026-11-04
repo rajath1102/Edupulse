@@ -345,3 +345,25 @@ export async function generateMockExamPaper(payload) {
   });
   return handleResponse(res);
 }
+
+// ==========================================
+// INTERACTIVE AI EXAM GRADER & CHEAT SHEET
+// ==========================================
+
+export async function gradeStudentAnswer(payload) {
+  const res = await fetch(`${API_BASE}/api/ai/grade-answer`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(res);
+}
+
+export async function generateCheatSheet(payload) {
+  const res = await fetch(`${API_BASE}/api/ai/cheat-sheet`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(res);
+}

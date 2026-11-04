@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import * as api from '../api';
 import { DEMO_MOCK_EXAM } from '../demoSamples';
+import ExamGraderWorkspace from '../components/ExamGraderWorkspace';
+import CheatSheetModal from '../components/CheatSheetModal';
 
 const SAMPLE_SUBJECTS = [
   'Database Management (DBMS)',
@@ -45,9 +47,10 @@ export default function MockExamPage() {
   const [generating, setGenerating] = useState(false);
   const [examData, setExamData] = useState(null);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('paper'); // 'paper' | 'answers' | 'rubric'
+  const [activeTab, setActiveTab] = useState('paper'); // 'paper' | 'answers' | 'rubric' | 'grader'
   const [showAnswerKey, setShowAnswerKey] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
 
   // Timer State for Student Mock Test Simulation
   const [timerSeconds, setTimerSeconds] = useState(90 * 60);
@@ -175,7 +178,27 @@ export default function MockExamPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setIsCheatSheetOpen(true)}
+            style={{
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: '#fff',
+              border: 'none',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              fontWeight: '700',
+              fontSize: '0.825rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+            }}
+          >
+            <Sparkles size={15} /> ⚡ Last-Night Cheat Sheet
+          </button>
+
           <button
             onClick={loadDemoExam}
             style={{
@@ -611,6 +634,26 @@ export default function MockExamPage() {
                   >
                     📊 Scoring Rubric
                   </button>
+
+                  <button
+                    onClick={() => setActiveTab('grader')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: '1px solid',
+                      borderColor: activeTab === 'grader' ? '#ea580c' : 'transparent',
+                      background: activeTab === 'grader' ? 'rgba(234, 88, 12, 0.12)' : 'none',
+                      color: activeTab === 'grader' ? '#ea580c' : 'var(--text-secondary)',
+                      fontWeight: '800',
+                      fontSize: '0.875rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🎯 AI Answer Grader
+                  </button>
                 </div>
 
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--bg)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
@@ -732,8 +775,27 @@ export default function MockExamPage() {
                 </div>
               )}
 
+              {/* View 4: Interactive AI Answer Grader */}
+              {activeTab === 'grader' && (
+                <ExamGraderWorkspace subject={subject} examData={examData} />
+              )}
+
             </div>
           )}
+
+          {/* If no examData yet, allow student to directly use the Grader Workspace */}
+          {!examData && !generating && (
+            <div style={{ marginTop: '24px' }}>
+              <ExamGraderWorkspace subject={subject} examData={examData} />
+            </div>
+          )}
+
+          {/* Last-Night Cheat Sheet Modal */}
+          <CheatSheetModal
+            isOpen={isCheatSheetOpen}
+            onClose={() => setIsCheatSheetOpen(false)}
+            defaultSubject={subject}
+          />
 
         </div>
       </div>
