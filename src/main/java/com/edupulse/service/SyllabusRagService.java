@@ -182,6 +182,7 @@ public class SyllabusRagService {
     /**
      * Query the syllabus using Retrieval-Augmented Generation (RAG).
      */
+    @Transactional(readOnly = true)
     public SyllabusQueryResponseDTO querySyllabus(SyllabusQueryRequestDTO request) {
         String question = request.getQuestion() != null ? request.getQuestion().trim() : "";
         if (question.isEmpty()) {
@@ -198,7 +199,7 @@ public class SyllabusRagService {
         if (request.getDocumentId() != null) {
             SyllabusDocument doc = documentRepository.findById(request.getDocumentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Syllabus document", "id", request.getDocumentId()));
-            candidateChunks = doc.getChunks();
+            candidateChunks = chunkRepository.findByDocumentIdOrderByChunkIndexAsc(doc.getId());
             documentTitle = doc.getTitle();
             subject = doc.getSubject();
         } else {
@@ -208,9 +209,7 @@ public class SyllabusRagService {
                 seedSampleSyllabusIfEmpty();
                 allDocs = documentRepository.findAll();
             }
-            candidateChunks = allDocs.stream()
-                    .flatMap(d -> d.getChunks().stream())
-                    .collect(Collectors.toList());
+            candidateChunks = chunkRepository.findAll();
             if (!allDocs.isEmpty()) {
                 documentTitle = allDocs.get(0).getTitle();
                 subject = allDocs.get(0).getSubject();
