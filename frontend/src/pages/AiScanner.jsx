@@ -289,9 +289,9 @@ export default function AiScanner({ students = [], onRefreshStudents }) {
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
-          background: message.type === 'error' ? '#fee2e2' : (message.type === 'warning' ? '#fef3c7' : (message.type === 'info' ? '#e0e7ff' : '#dcfce7')),
-          color: message.type === 'error' ? '#991b1b' : (message.type === 'warning' ? '#92400e' : (message.type === 'info' ? '#3730a3' : '#166534')),
-          border: `1px solid ${message.type === 'error' ? '#fecaca' : (message.type === 'warning' ? '#fde68a' : (message.type === 'info' ? '#c7d2fe' : '#bbf7d0'))}`
+          background: message.type === 'error' ? 'var(--danger-bg)' : (message.type === 'warning' ? 'var(--warning-bg)' : (message.type === 'info' ? 'var(--primary-light)' : 'var(--success-bg)')),
+          color: message.type === 'error' ? 'var(--danger)' : (message.type === 'warning' ? 'var(--warning)' : (message.type === 'info' ? 'var(--accent)' : 'var(--success)')),
+          border: `1px solid ${message.type === 'error' ? 'rgba(239, 68, 68, 0.3)' : (message.type === 'warning' ? 'rgba(245, 158, 11, 0.3)' : (message.type === 'info' ? 'rgba(99, 102, 241, 0.3)' : 'rgba(34, 197, 94, 0.3)'))}`
         }}>
           {message.type === 'error' ? <AlertCircle size={18} /> : (message.type === 'warning' ? <HelpCircle size={18} /> : <CheckCircle size={18} />)}
           <span>{message.text}</span>
@@ -370,7 +370,7 @@ export default function AiScanner({ students = [], onRefreshStudents }) {
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-sm)',
                   overflow: 'hidden',
-                  background: '#f8fafc',
+                  background: 'var(--surface-raised)',
                   textAlign: 'center',
                   maxHeight: '280px',
                   position: 'relative'
@@ -459,7 +459,7 @@ export default function AiScanner({ students = [], onRefreshStudents }) {
         <div className="card">
           <div className="card-header">
             <h3><Sparkles size={16} /> Multimodal Vision Pipeline</h3>
-            <span className="badge-api" style={{ background: '#dcfce7', color: '#166534', borderColor: '#bbf7d0' }}>
+            <span className="badge-api" style={{ background: 'var(--success-bg)', color: '#86efac', borderColor: 'rgba(34, 197, 94, 0.3)' }}>
               Gemini 3.8 Flash
             </span>
           </div>
@@ -558,8 +558,8 @@ export default function AiScanner({ students = [], onRefreshStudents }) {
                         style={{
                           padding: '6px 10px',
                           borderRadius: '6px',
-                          border: rec.matched ? '1px solid #86efac' : '1px solid #fde68a',
-                          background: rec.matched ? '#f0fdf4' : '#fffbeb',
+                          border: rec.matched ? '1px solid rgba(34, 197, 94, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)',
+                          background: rec.matched ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
                           fontSize: '0.825rem',
                           fontWeight: '500',
                           color: 'var(--text-primary)',

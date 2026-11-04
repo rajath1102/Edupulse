@@ -62,7 +62,7 @@ export default function AiAdvisor({ students, selectedStudentId, onSelectStudent
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                       <span style={{
                         fontSize: '0.7rem', fontWeight: '700', padding: '3px 10px',
-                        background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0',
+                        background: 'rgba(34, 197, 94, 0.15)', color: '#86efac', border: '1px solid rgba(34, 197, 94, 0.3)',
                         borderRadius: '100px', display: 'inline-flex', alignItems: 'center', gap: '4px'
                       }}>
                         🔒 Student Profile Active

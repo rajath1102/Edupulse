@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { X, Lock, User, Mail, BookOpen, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -141,9 +141,9 @@ export default function LoginModal({ isOpen, onClose }) {
                   fontSize: '0.75rem',
                   fontWeight: '600',
                   borderRadius: '6px',
-                  border: '1px solid #c7d2fe',
-                  background: '#e0e7ff',
-                  color: '#4338ca',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  background: 'rgba(99, 102, 241, 0.15)',
+                  color: '#a5b4fc',
                   cursor: 'pointer'
                 }}
               >
@@ -158,9 +158,9 @@ export default function LoginModal({ isOpen, onClose }) {
                   fontSize: '0.75rem',
                   fontWeight: '600',
                   borderRadius: '6px',
-                  border: '1px solid #fde68a',
-                  background: '#fef3c7',
-                  color: '#92400e',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  color: '#fcd34d',
                   cursor: 'pointer'
                 }}
               >
@@ -175,9 +175,9 @@ export default function LoginModal({ isOpen, onClose }) {
                   fontSize: '0.75rem',
                   fontWeight: '600',
                   borderRadius: '6px',
-                  border: '1px solid #bbf7d0',
-                  background: '#dcfce7',
-                  color: '#166534',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  background: 'rgba(34, 197, 94, 0.15)',
+                  color: '#86efac',
                   cursor: 'pointer'
                 }}
               >

@@ -136,7 +136,7 @@ export default function Analytics({ students, selectedStudentId, onSelectStudent
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                       <span style={{
                         fontSize: '0.7rem', fontWeight: '700', padding: '3px 10px',
-                        background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0',
+                        background: 'rgba(34, 197, 94, 0.15)', color: '#86efac', border: '1px solid rgba(34, 197, 94, 0.3)',
                         borderRadius: '100px', display: 'inline-flex', alignItems: 'center', gap: '4px'
                       }}>
                         🔒 Privacy Active
@@ -278,9 +278,9 @@ export default function Analytics({ students, selectedStudentId, onSelectStudent
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: exportNotice.type === 'error' ? '#fee2e2' : (exportNotice.type === 'warning' ? '#fef3c7' : '#dcfce7'),
-                color: exportNotice.type === 'error' ? '#991b1b' : (exportNotice.type === 'warning' ? '#92400e' : '#166534'),
-                border: `1px solid ${exportNotice.type === 'error' ? '#fecaca' : (exportNotice.type === 'warning' ? '#fde68a' : '#bbf7d0')}`
+                background: exportNotice.type === 'error' ? 'var(--danger-bg)' : (exportNotice.type === 'warning' ? 'var(--warning-bg)' : 'var(--success-bg)'),
+                color: exportNotice.type === 'error' ? 'var(--danger)' : (exportNotice.type === 'warning' ? 'var(--warning)' : 'var(--success)'),
+                border: `1px solid ${exportNotice.type === 'error' ? 'rgba(239, 68, 68, 0.3)' : (exportNotice.type === 'warning' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(34, 197, 94, 0.3)')}`
               }}>
                 {exportNotice.type === 'error' ? <AlertCircle size={15} /> : <CheckCircle size={15} />}
                 <span>{exportNotice.text}</span>

@@ -40,11 +40,11 @@ export default function Topbar({ currentSection, onOpenLoginModal }) {
   };
 
   const badgeStyle = {
-    ADMIN: { bg: '#fef3c7', text: '#92400e', border: '#fde68a' },
-    TEACHER: { bg: '#e0e7ff', text: '#4338ca', border: '#c7d2fe' },
-    STUDENT: { bg: '#dcfce7', text: '#166534', border: '#bbf7d0' },
-    GUEST: { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' }
-  }[roleName] || { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' };
+    ADMIN: { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', border: 'rgba(245, 158, 11, 0.3)' },
+    TEACHER: { bg: 'rgba(99, 102, 241, 0.15)', text: '#a5b4fc', border: 'rgba(99, 102, 241, 0.3)' },
+    STUDENT: { bg: 'rgba(34, 197, 94, 0.15)', text: '#4ade80', border: 'rgba(34, 197, 94, 0.3)' },
+    GUEST: { bg: 'rgba(100, 116, 139, 0.15)', text: '#cbd5e1', border: 'rgba(100, 116, 139, 0.3)' }
+  }[roleName] || { bg: 'rgba(100, 116, 139, 0.15)', text: '#cbd5e1', border: 'rgba(100, 116, 139, 0.3)' };
 
   return (
     <header className="topbar">
