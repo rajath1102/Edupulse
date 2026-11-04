@@ -1,402 +1,333 @@
-# EDUPULSE – AI-Powered Adaptive Learning & Personalized Student Performance Analytics Platform
+<div align="center">
 
-> **A modern, clean, Spring Boot & MySQL academic project designed for student performance tracking, predictive academic risk assessment, and generative AI study recommendations.**
+# 🎓 EduPulse
+### AI-Powered Adaptive Learning & Student Performance Intelligence Platform
 
----
+[![React](https://img.shields.io/badge/Frontend-React_18_%7C_Vite-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+[![Spring Boot](https://img.shields.io/badge/Backend-Spring_Boot_3.3.4-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Language-Java_17_LTS-ED8B00?logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Google Gemini](https://img.shields.io/badge/AI-Google_Gemini_Vision_%26_RAG-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
+[![Tailwind / Dark UI](https://img.shields.io/badge/Theme-Obsidian_Dark_Mode-090D16)](https://github.com/rajath1102/Edupulse)
+[![Deploy Vercel](https://img.shields.io/badge/Frontend_Deploy-Vercel-black?logo=vercel)](https://frontend-rajath7.vercel.app)
+[![Deploy Render](https://img.shields.io/badge/Backend_Deploy-Render-46E3B7?logo=render)](https://edupulse-1-2ssh.onrender.com)
 
-## 📌 Project Overview
-**EduPulse** is an educational analytics and adaptive learning platform designed to help educators, academic mentors, and students identify learning gaps before it is too late. By continuously monitoring individual subject marks and attendance rates, the platform automatically categorizes students into risk tiers (**LOW**, **MEDIUM**, **HIGH**), identifies specific weak subjects, and uses **Google Gemini AI** to generate personalized, actionable remediation study plans.
+**An institutional-grade full-stack SaaS platform combining predictive academic risk modeling, multimodal AI marksheet scanning, syllabus-grounded retrieval (RAG), and automated exam answer grading.**
 
----
+[Explore Live Demo](https://frontend-rajath7.vercel.app) • [API Health Status](https://edupulse-1-2ssh.onrender.com/health) • [Report Issue](https://github.com/rajath1102/Edupulse/issues)
 
-## 🎯 Problem Statement
-In conventional educational environments:
-1. Student risk and weak areas are typically identified only **after** end-semester examination results are declared.
-2. Academic advisors lack an automated, data-driven way to compute average marks, attendance trends, and at-risk students across disciplines.
-3. Students rarely receive personalized, subject-specific study routines tailored to their individual weaknesses and attendance gaps.
-
-**EduPulse** bridges this gap by providing an end-to-end automated platform that combines relational performance tracking with real-time AI advisory.
-
----
-
-## 🚀 Objectives
-- **Centralized Student Records**: Easily register, update, and manage student profiles.
-- **Granular Subject Tracking**: Log marks and attendance per subject for every student.
-- **Automated Academic Risk Engine**: Dynamically compute average scores and classify risk level based on rigorous business rules.
-- **Weak Subject Discovery**: Automatically detect subjects where student scores fall below threshold (< 50%).
-- **AI-Powered Adaptive Learning**: Leverage Google Gemini API to synthesize student analytics and produce personalized, motivating weekly study plans.
-- **High Fault Tolerance**: Seamless fallback to a rule-based advisor if an AI API key is not configured, ensuring 100% platform uptime.
+</div>
 
 ---
 
-## 🛠️ Technology Stack
+## 📌 Executive Summary
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Language** | Java 17 (or Java 21) | Robust, enterprise-grade backend language |
-| **Framework** | Spring Boot 3.3.4 | Rapid application framework & dependency injection |
-| **Web / REST** | Spring Web (Spring MVC) | RESTful API controllers and HTTP routing |
-| **ORM / Data Access** | Spring Data JPA / Hibernate | Object-Relational Mapping and CRUD abstraction |
-| **Database** | MySQL 8.x | Relational database persistence |
-| **Validation** | Jakarta Bean Validation (Hibernate Validator) | Input validation for email, marks, attendance |
-| **AI Integration** | Google Gemini API (REST / `gemini-1.5-flash`) | Natural language generative study planning |
-| **Build Tool** | Apache Maven | Dependency and lifecycle management |
+Traditional higher education systems detect student academic failure **retrospectively**—weeks after semester examinations are published when remediation is too late. Furthermore, faculty spend dozens of hours manually entering handwritten marks, while students lack personalized exam preparation grounded in their university's exact syllabus.
+
+**EduPulse** solves this by establishing a proactive, continuous intelligence pipeline:
+1. **Predictive Academic Risk Engine**: Real-time identification of at-risk students (`LOW`, `MEDIUM`, `HIGH`) through multi-subject scores and attendance thresholds before official university grading deadlines.
+2. **Multimodal AI Exam Scanner**: Uses Google Gemini Vision OCR to scan physical exam marksheet photos, automatically parse handwritten/printed student scores, and commit batch records in 1 click.
+3. **Course Notes & Syllabus RAG Tutor**: Grounded question-answering with Apache PDFBox text extraction and semantic chunking to explain concepts citing specific units.
+4. **Interactive Exam Simulator & AI Grader**: Real-time evaluation of student answers against university rubrics with score breakdown, missing points, and revision tips.
+5. **Last-Night Revision Cheat Sheet**: 1-click synthesis of high-yield 2-mark definitions, theorems, formulas, and common exam pitfalls.
 
 ---
 
-## 🏛️ Architecture & Data Flow
+## 🌟 Key Highlights & Live URLs
 
-```text
- Client (Postman / Browser / cURL)
-                │
-                ▼
-      REST Controller Layer
-  (Student, Performance, Analysis, AI)
-                │
-                ▼
-        Service Layer
- (Business Logic, Validation, Analytics, Gemini Client)
-                │
-                ▼
-       Repository Layer
-    (Spring Data JPA Interfaces)
-                │
-                ▼
-         MySQL Database
-    (students, performances)
-```
+- 🌐 **Production Frontend**: [https://frontend-rajath7.vercel.app](https://frontend-rajath7.vercel.app)
+- ⚙️ **Production Backend API**: [https://edupulse-1-2ssh.onrender.com](https://edupulse-1-2ssh.onrender.com)
+- 🩺 **Health Check**: [https://edupulse-1-2ssh.onrender.com/health](https://edupulse-1-2ssh.onrender.com/health)
 
-### Risk Calculation Rules
-- **Average Marks $\ge$ 75%** $\rightarrow$ `LOW` Risk (Strong academic standing)
-- **Average Marks $\ge$ 50% and < 75%** $\rightarrow$ `MEDIUM` Risk (Satisfactory, needs improvement in weak subjects)
-- **Average Marks < 50%** $\rightarrow$ `HIGH` Risk (Immediate remediation needed)
-- **Weak Subject Definition**: Any individual subject score `< 50.0` marks.
+### 🔑 1-Click Interactive Demo Accounts
+
+| Role | Username | Password | Key Permissions |
+| :--- | :--- | :--- | :--- |
+| **Faculty / Professor** | `teacher` | `teacher123` | Student management, batch marks entry, OCR marksheet scanner, cohort analytics |
+| **Administrator** | `admin` | `admin123` | Platform settings, database controls, role management |
+| **Student** | `student` | `student123` | Personal profile, EduBot AI tutor, mock exams, syllabus RAG tutor |
 
 ---
 
-## 📁 Project Structure
+## 🏛️ System Architecture
 
-```text
-edupulse/
-├── src/
-│   ├── main/
-│   │   ├── java/com/edupulse/
-│   │   │   ├── config/
-│   │   │   │   ├── AppConfig.java          # RestTemplate & CORS configuration
-│   │   │   │   └── DataInitializer.java    # Seeds initial demo students & marks
-│   │   │   ├── controller/
-│   │   │   │   ├── StudentController.java
-│   │   │   │   ├── PerformanceController.java
-│   │   │   │   ├── AnalysisController.java
-│   │   │   │   └── AiRecommendationController.java
-│   │   │   ├── dto/
-│   │   │   │   ├── PerformanceRequestDTO.java
-│   │   │   │   ├── PerformanceResponseDTO.java
-│   │   │   │   ├── PerformanceAnalysisDTO.java
-│   │   │   │   ├── AiRecommendationResponseDTO.java
-│   │   │   │   └── ErrorResponse.java
-│   │   │   ├── exception/
-│   │   │   │   ├── ResourceNotFoundException.java
-│   │   │   │   ├── BadRequestException.java
-│   │   │   │   └── GlobalExceptionHandler.java
-│   │   │   ├── model/
-│   │   │   │   ├── Student.java
-│   │   │   │   └── Performance.java
-│   │   │   ├── repository/
-│   │   │   │   ├── StudentRepository.java
-│   │   │   │   └── PerformanceRepository.java
-│   │   │   ├── service/
-│   │   │   │   ├── StudentService.java
-│   │   │   │   ├── PerformanceService.java
-│   │   │   │   ├── AnalysisService.java
-│   │   │   │   └── AiRecommendationService.java
-│   │   │   └── EduPulseApplication.java    # Spring Boot Main Entrypoint
-│   │   └── resources/
-│   │       └── application.properties      # MySQL & Gemini config
-│   └── test/
-│       ├── java/com/edupulse/
-│       │   └── EduPulseApplicationTests.java
-│       └── resources/
-│           ├── application.properties      # H2 In-Memory DB for tests
-│           └── mockito-extensions/
-├── mvnw.cmd                                # Windows Maven wrapper runner
-├── run.ps1                                 # Quick-launch PowerShell script
-├── sample_data.sql                         # MySQL schema & seed script
-├── pom.xml                                 # Maven dependencies
-└── README.md                               # Project documentation
+```mermaid
+flowchart TD
+    subgraph Client_Layer["Frontend Client (Vercel CDN)"]
+        UI["React 18 SPA (Vite)"]
+        DARK["Obsidian Dark Design Tokens"]
+        AUTH_CTX["AuthContext (JWT + Session State)"]
+        DASH["Analytics Dashboard & Risk Badges"]
+        SCANNER["AI Multimodal Marksheet Scanner"]
+        RAG_UI["Course Notes RAG Tutor"]
+        GRADER_UI["Mock Exam & AI Grader"]
+        PDF_EXPORT["jsPDF Vector & CSV Exporter"]
+    end
+
+    subgraph Security_Layer["Security & Gateway Tier"]
+        CORS["CORS Filter"]
+        JWT_FILTER["JwtAuthenticationFilter"]
+        SEC_CFG["Spring Security 6 (Stateless RBAC)"]
+    end
+
+    subgraph Application_Layer["Backend Microservices (Spring Boot 3.3.4 / Render)"]
+        AUTH_SVC["AuthService (BCrypt + JJWT)"]
+        STUDENT_SVC["StudentService (CRUD)"]
+        PERF_SVC["PerformanceService (Batch Logging)"]
+        ANALYSIS_SVC["AnalysisService (Deterministic Risk Rules)"]
+        RAG_SVC["SyllabusRagService (Apache PDFBox + BM25 Chunker)"]
+        GRADER_SVC["AnswerGraderService (Rubric Evaluation)"]
+        AI_SVC["AiRecommendationService (Vision & LLM Fallback)"]
+    end
+
+    subgraph Persistence_Layer["Data & Cloud Intelligence Tier"]
+        DB[("PostgreSQL / MySQL Relational DB")]
+        GEMINI["Google Gemini Generative AI (1.5 Flash / 3.8 Flash)"]
+    end
+
+    UI --> AUTH_CTX
+    UI --> Security_Layer
+    PDF_EXPORT -.-> UI
+
+    Security_Layer --> JWT_FILTER
+    JWT_FILTER --> SEC_CFG
+    SEC_CFG --> Application_Layer
+
+    AUTH_SVC --> DB
+    STUDENT_SVC --> DB
+    PERF_SVC --> DB
+    ANALYSIS_SVC --> DB
+    RAG_SVC --> DB
+
+    AI_SVC <--> GEMINI
+    GRADER_SVC <--> GEMINI
+    RAG_SVC <--> GEMINI
 ```
 
 ---
 
-## ⚙️ MySQL Setup
+## 🚀 Core Features & Workflows
 
-1. **Start the MySQL Service** (if not already running):
-   - In Windows Services (`services.msc`), find **MySQL80** and click **Start**.
-   - Or open PowerShell as Administrator and run:
-     ```powershell
-     Start-Service MYSQL80
-     ```
+### 1. 📊 Predictive Academic Risk & Diagnostics Engine
+- **Deterministic Evaluation Matrix**:
+  - `Average Marks >= 75%` $\rightarrow$ **LOW Risk** (Strong academic momentum).
+  - `50% <= Average Marks < 75%` $\rightarrow$ **MEDIUM Risk** (Average standing, weak subject vulnerability).
+  - `Average Marks < 50%` $\rightarrow$ **HIGH Risk** (Immediate academic intervention triggered).
+- **Weak Subject Detection**: Identifies any subject where a student scores below 50.0% and flags it for targeted study planning.
+- **Attendance Correlation**: Computes running attendance percentages alongside grades to identify students violating university minimum attendance norms (e.g. AICTE 75% rule).
 
-2. **Create the Database**:
-   Log into your MySQL client (Command Line or MySQL Workbench):
-   ```sql
-   CREATE DATABASE IF NOT EXISTS edupulse;
-   ```
+### 2. 📷 AI Exam Score Sheet Scanner (Multimodal OCR)
+- Eliminates manual marksheet data entry.
+- Faculty upload a photo or scan of a score sheet (JPEG, PNG, or WebP).
+- **Gemini Vision Pipeline**: Parses handwritten student names, subject titles, scores, and attendance rates into structured JSON.
+- **Entity Resolution**: Fuzzy matches scanned student names against the registered student roster.
+- **Human-in-the-Loop Review**: Faculty can edit scores, reassign matched students, or remove rows before committing to the database via batch transaction.
 
-3. **Verify Database Credentials**:
-   Open `src/main/resources/application.properties` and ensure `spring.datasource.username` and `spring.datasource.password` match your local MySQL settings (defaults are `root` / `root`).
+### 3. 📚 Course Notes & Syllabus "RAG" Tutor
+- **Retrieval-Augmented Generation (RAG)** grounded strictly in university course material.
+- **PDF Ingestion Engine**: Powered by **Apache PDFBox 3.0.3** to extract structured text from multi-page PDFs or lecture slides.
+- **Chunk Indexing**: Documents are split into semantic units with metadata tracking (Unit, Chapter, Section).
+- **Grounded Verification**: EduBot cites the exact Unit and Chapter from which answers are derived, eliminating AI hallucinations.
 
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/edupulse?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
-   spring.datasource.username=root
-   spring.datasource.password=root
-   ```
+### 4. 🎯 Interactive Exam Simulator & AI Grader
+- Generates standard university question papers (2-mark short questions and 10-mark long questions) with marking schemes.
+- Students type answers directly into the answer box or upload responses.
+- **AI Rubric Evaluator**:
+  - Compares student answers against textbook scoring rubrics.
+  - Returns numeric marks awarded, percentage, and qualitative performance band (`EXCELLENT`, `GOOD`, `NEEDS_IMPROVEMENT`).
+  - Highlights specific strengths, omitted derivations or diagrams, and model answer improvement tips.
 
-*(Note: Hibernate will automatically generate and update tables due to `spring.jpa.hibernate.ddl-auto=update`)*.
+### 5. ⚡ Last-Night Revision Cheat Sheet Generator
+- 1-Click synthesis designed for high-stress pre-exam review.
+- Generates:
+  - **Must-Know 2-Mark Definitions**: Formulated exactly as required for maximum marks.
+  - **Key Formulas & Theorems**: Condensed mathematical and algorithmic formulas.
+  - **10-Mark Architectural Figures**: Bulleted guidelines for diagrams and schematics.
+  - **Exam Hall Traps**: Common misconceptions that lead to lost marks.
+
+### 6. 📄 Official PDF & CSV Academic Reports
+- **Vector PDF Export**: Built using `jsPDF` and `jspdf-autotable`. Produces formal A4 academic reports featuring institution branding, student metadata, health diagnostics summary, subject marks table, and AI remediation plan.
+- **RFC-4180 CSV Export**: Generates clean CSV files with UTF-8 BOM (`\uFEFF`) for direct compatibility with Microsoft Excel, Google Sheets, and institutional ERP systems.
+
+### 7. 🔒 Student Data Privacy & Role-Based Access Control
+- Custom Spring Security filters enforce strict boundaries:
+  - Students can view **only** their own performance records and analytics.
+  - Attempts to access other students' records by manipulating URL IDs return **HTTP 403 Forbidden**.
+  - Student creation, score logging, and marks deletion are restricted strictly to `ROLE_TEACHER` and `ROLE_ADMIN`.
 
 ---
 
-## 🤖 Google Gemini API Setup (Optional)
+## 🛠️ Technology Stack Breakdown
 
-The application includes built-in fault tolerance: **it runs and works completely even without a Gemini API key** by using an intelligent rule-based academic advisor.
+| Domain | Technology | Version | Description |
+| :--- | :--- | :--- | :--- |
+| **Backend Framework** | Spring Boot | 3.3.4 | Microservice REST framework with inversion of control |
+| **Language Runtime** | Java OpenJDK | 17 LTS | Modern LTS Java runtime with strong typing |
+| **Security** | Spring Security | 6.x | Stateless JWT filter chain with BCrypt password hashing |
+| **Token Architecture** | JJWT | 0.12.6 | HMAC-SHA256 signed JSON Web Tokens |
+| **ORM & Persistence** | Spring Data JPA / Hibernate | 6.x | Entity mappings, repository queries, and schema generation |
+| **Database** | PostgreSQL / MySQL | 8.x / 16.x | High-performance relational database with HikariCP |
+| **Document Processing** | Apache PDFBox | 3.0.3 | Native PDF text and page extraction |
+| **AI Integration** | Google Gemini Generative AI | 1.5 Flash / 3.8 Flash | Multimodal vision & generative text models |
+| **Frontend Framework** | React | 18.2 | Component-driven Single Page Application |
+| **Build & Bundler** | Vite | 5.x | Ultra-fast HMR and optimized production build tool |
+| **Client-Side Export** | jsPDF + autoTable | 2.5.1 / 3.8.2 | Vector PDF report renderer |
+| **UI Design System** | Custom Obsidian CSS | CSS3 | High-contrast dark mode design tokens |
+| **Frontend Hosting** | Vercel | Global CDN | Automatic continuous deployments from Git |
+| **Backend Hosting** | Render | Docker Container | Cloud container service with automated health monitoring |
 
-To connect live Google Gemini AI:
-1. Obtain a free API key from [Google AI Studio](https://aistudio.google.com/).
-2. Set the environment variable in your terminal before running:
+---
 
-**Windows PowerShell:**
-```powershell
-$env:GEMINI_API_KEY="AIzaSyYourActualKeyHere..."
-```
+## 📡 REST API Reference
 
-**Windows Command Prompt (cmd):**
-```cmd
-set GEMINI_API_KEY=AIzaSyYourActualKeyHere...
-```
+All protected endpoints require the HTTP header:  
+`Authorization: Bearer <JWT_TOKEN>`
 
-**Linux / macOS:**
+### Authentication & Profiles
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Public | Register a new user account |
+| `POST` | `/api/auth/login` | Public | Authenticate credentials and receive JWT |
+| `GET` | `/api/auth/me` | Authenticated | Retrieve currently authenticated user profile |
+
+### Student Management
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/students` | All Roles | Retrieve all registered student profiles |
+| `GET` | `/api/students/{id}` | All Roles | Retrieve single student profile by ID |
+| `POST` | `/api/students` | Teacher / Admin | Register a new student profile |
+| `PUT` | `/api/students/{id}` | Teacher / Admin | Update student profile information |
+| `DELETE` | `/api/students/{id}` | Teacher / Admin | Delete student record and cascading marks |
+
+### Performance & Marks Logging
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/performance/student/{id}` | Owner / Faculty | Get all subject performance records for student |
+| `POST` | `/api/performance` | Teacher / Admin | Log a single performance entry |
+| `POST` | `/api/performance/batch` | Teacher / Admin | Batch commit multiple student performance records |
+
+### Analytics & AI Intelligence
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/analysis/student/{id}` | Owner / Faculty | Compute average marks, attendance, and risk level |
+| `POST` | `/api/ai/recommendation/{id}` | All Roles | Generate personalized adaptive study recovery plan |
+| `POST` | `/api/ai/chat` | All Roles | EduBot real-time academic conceptual explanations |
+| `POST` | `/api/ai/scan-marks` | Teacher / Admin | Gemini Vision OCR extraction on marksheet photo |
+| `POST` | `/api/ai/syllabus/upload` | All Roles | Upload & index syllabus document (PDF / TXT) |
+| `GET` | `/api/ai/syllabus` | All Roles | List all indexed syllabus documents |
+| `POST` | `/api/ai/syllabus/query` | All Roles | Query indexed course notes with grounded citations |
+| `POST` | `/api/ai/mock-exam/generate`| All Roles | Generate university mock paper with answer keys |
+| `POST` | `/api/ai/grade-answer` | All Roles | Interactive AI answer evaluation against rubric |
+| `POST` | `/api/ai/cheat-sheet` | All Roles | Generate 15-minute Last-Night Revision Cheat Sheet |
+| `GET` | `/health` | Public | Cloud container health check |
+
+---
+
+## 💻 Local Development Setup
+
+### Prerequisites
+- **Java Development Kit (JDK)**: Version 17 or higher
+- **Node.js**: Version 18 or higher & npm
+- **Database**: MySQL 8.x or PostgreSQL 14+
+- **Google Gemini API Key**: [Get a free API key here](https://aistudio.google.com/)
+
+---
+
+### Step 1: Clone the Repository
 ```bash
-export GEMINI_API_KEY="AIzaSyYourActualKeyHere..."
+git clone https://github.com/rajath1102/Edupulse.git
+cd Edupulse
 ```
 
 ---
 
-## ▶️ How to Run the Application
+### Step 2: Configure Backend (`application.properties`)
+Create or edit `src/main/resources/application.properties`:
+```properties
+# Server
+server.port=8080
 
-You can run the application with any of the following options:
+# Database Configuration (MySQL Example)
+spring.datasource.url=jdbc:mysql://localhost:3306/edupulse?createDatabaseIfNotExist=true&useSSL=false
+spring.datasource.username=root
+spring.datasource.password=your_db_password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
 
-### Option 1: Using the included PowerShell script (Recommended for Windows)
-```powershell
-.\run.ps1
+# Google Gemini AI Configuration
+gemini.api.key=YOUR_GEMINI_API_KEY_HERE
+gemini.api.model=gemini-1.5-flash
+
+# JWT Security
+jwt.secret=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+jwt.expiration-ms=86400000
 ```
 
-### Option 2: Using the Maven script
-```powershell
-.\mvnw.cmd spring-boot:run
-```
+---
 
-### Option 3: Standard Maven (if installed in system PATH)
+### Step 3: Run the Backend
 ```bash
-mvn spring-boot:run
+# Using Maven wrapper
+./mvnw clean spring-boot:run
+
+# Or on Windows PowerShell:
+.\mvnw.cmd clean spring-boot:run
 ```
-
-Once started, the server runs at: `http://localhost:8080`.
-
----
-
-## 📊 Pre-Loaded Sample Data
-On the very first run, `DataInitializer.java` automatically populates the database with 3 representative student profiles:
-
-1. **ID 1: John Doe** (Medium Risk, Average Marks: 62.25%, Weak Subject: *Data Structures & Algorithms* [45 marks])
-2. **ID 2: Jane Smith** (Low Risk, Average Marks: 85.0%, No weak subjects, Attendance: 92.33%)
-3. **ID 3: Alex Brown** (High Risk, Average Marks: 41.67%, Weak in 3 subjects, Attendance: 60.0%)
-
-You can immediately test the endpoints without manually inserting data first!
+Backend will start on `http://localhost:8080`.
 
 ---
 
-## 📡 Complete REST API Endpoints
-
-### 1. Student Management (`/api/students`)
-
-| Method | Endpoint | Description | Status Code |
-|---|---|---|---|
-| `POST` | `/api/students` | Register a new student | `201 Created` |
-| `GET` | `/api/students` | Retrieve list of all students | `200 OK` |
-| `GET` | `/api/students/{id}` | Retrieve specific student by ID | `200 OK` / `404 Not Found` |
-| `PUT` | `/api/students/{id}` | Update existing student record | `200 OK` |
-| `DELETE` | `/api/students/{id}` | Remove student and associated records | `200 OK` |
-
-### 2. Performance Tracking (`/api/performance`)
-
-| Method | Endpoint | Description | Status Code |
-|---|---|---|---|
-| `POST` | `/api/performance` | Add subject marks & attendance | `201 Created` |
-| `GET` | `/api/performance/student/{studentId}` | Get all marks for a student | `200 OK` |
-
-### 3. Performance Analysis (`/api/analysis`)
-
-| Method | Endpoint | Description | Status Code |
-|---|---|---|---|
-| `GET` | `/api/analysis/student/{studentId}` | Compute average marks, attendance, weak subjects & risk | `200 OK` |
-
-### 4. AI Adaptive Study Recommendation (`/api/ai`)
-
-| Method | Endpoint | Description | Status Code |
-|---|---|---|---|
-| `POST` | `/api/ai/recommendation/{studentId}` | Generate personalized AI study plan | `200 OK` |
-
----
-
-## 🧪 Example API Requests & Responses
-
-### 1. Register a Student
-**Request:**
+### Step 4: Run the Frontend
 ```bash
-curl -X POST http://localhost:8080/api/students \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Rahul Sharma",
-    "email": "rahul.sharma@example.com",
-    "course": "Computer Science",
-    "year": 3
-  }'
-```
+cd frontend
 
-**Response (`201 Created`):**
-```json
-{
-  "id": 4,
-  "name": "Rahul Sharma",
-  "email": "rahul.sharma@example.com",
-  "course": "Computer Science",
-  "year": 3
-}
+# Install dependencies
+npm install
+
+# Configure local backend URL
+# Create .env.local:
+echo "VITE_API_URL=http://localhost:8080" > .env.local
+
+# Start Vite dev server
+npm run dev
 ```
+Frontend will start on `http://localhost:5173`.
 
 ---
 
-### 2. Log Student Subject Marks & Attendance
-**Request:**
+## 🧪 Testing & Verification
+
+The backend includes a comprehensive integration test suite validating authentication, JWT verification, role-based authorization, and student data privacy.
+
 ```bash
-curl -X POST http://localhost:8080/api/performance \
-  -H "Content-Type: application/json" \
-  -d '{
-    "studentId": 4,
-    "subject": "Operating Systems",
-    "marks": 42.5,
-    "attendance": 68.0
-  }'
+# Execute integration test suite
+./mvnw test
 ```
 
-**Response (`201 Created`):**
-```json
-{
-  "id": 11,
-  "studentId": 4,
-  "studentName": "Rahul Sharma",
-  "subject": "Operating Systems",
-  "marks": 42.5,
-  "attendance": 68.0
-}
-```
+Key integration tests covered in [`SecurityAndAuthIntegrationTests.java`](src/test/java/com/edupulse/SecurityAndAuthIntegrationTests.java):
+- `testUnauthenticatedAccessReturnsUnauthorized`: Validates HTTP 401 on protected routes without tokens.
+- `testDemoAdminLoginAndSuccess`: Validates JWT issuance and admin access.
+- `testStudentRegistrationAndRoleRestrictions`: Confirms students cannot create student entities (HTTP 403).
+- `testStudentPrivacyAccessRestrictions`: Validates that a student cannot view another student's marks or diagnostics.
+- `testEduBotChatEndpointSuccess`: Validates AI response generation with Gemini fallback.
 
 ---
 
-### 3. Get Student Performance Analysis
-**Request:**
-```bash
-curl -X GET http://localhost:8080/api/analysis/student/1
-```
+## 🌐 Production Deployment Architecture
 
-**Response (`200 OK`):**
-```json
-{
-  "studentId": 1,
-  "studentName": "John Doe",
-  "averageMarks": 62.25,
-  "weakSubjects": [
-    "Data Structures & Algorithms"
-  ],
-  "averageAttendance": 81.25,
-  "riskLevel": "MEDIUM",
-  "totalSubjects": 4
-}
-```
+- **Frontend (Vercel CDN)**:
+  - Deployed on Vercel's global edge network.
+  - Automatically builds from `origin/main` on push.
+  - Configured with `fetchWithTimeout` failover: if backend experiences a cold start, cached metrics render instantly within 3.5s.
+- **Backend (Render Cloud Container)**:
+  - Packaged via multi-stage `Dockerfile` with OpenJDK 17.
+  - Memory-optimized JVM flags: `-XX:+UseSerialGC -Xms64m -Xmx350m`.
+  - Automatic scheduled keep-alive workflow via GitHub Actions ([`.github/workflows/keep_alive.yml`](.github/workflows/keep_alive.yml)) pings `/api/students` every 12 minutes to keep the container awake.
 
 ---
 
-### 4. Generate AI-Powered Study Recommendation
-**Request:**
-```bash
-curl -X POST http://localhost:8080/api/ai/recommendation/1
-```
+## 📄 License & Academic Attribution
 
-**Response (`200 OK`):**
-```json
-{
-  "studentId": 1,
-  "studentName": "John Doe",
-  "riskLevel": "MEDIUM",
-  "averageMarks": 62.25,
-  "averageAttendance": 81.25,
-  "weakSubjects": [
-    "Data Structures & Algorithms"
-  ],
-  "recommendation": "=== PERSONALIZED STUDY PLAN (EduPulse Adaptive Advisor) ===\n\nStudent: John Doe\nCalculated Risk Level: MEDIUM\n\n1. Performance Assessment: Moderate Risk\n   Your average score is 62.25%, showing good foundational knowledge but scope for distinction.\n   - Focus specifically on raising scores in: Data Structures & Algorithms.\n   - Dedicate 1.5 hours daily to problem-solving and practicing past exam questions.\n\n2. Attendance & Engagement Guidance:\n   - Great job maintaining 81.25% attendance! Consistent presence strongly correlates with higher exam scores.\n\n3. Recommended Weekly Strategy:\n   - Monday to Friday: 2 hours of focused study using the Pomodoro technique.\n   - Saturday: Comprehensive self-assessment and practical coding problem sets.\n   - Sunday: Weekly review and planning next week's milestones.",
-  "aiSource": "Google Gemini AI (gemini-1.5-flash)"
-}
-```
+This project is developed as an academic capstone and educational platform.  
+Created by **Rajath S Kumbari**.
 
----
-
-### 5. Error Handling Example (Validation Failure)
-**Request (Marks out of range):**
-```bash
-curl -X POST http://localhost:8080/api/performance \
-  -H "Content-Type: application/json" \
-  -d '{
-    "studentId": 1,
-    "subject": "Physics",
-    "marks": 150.0,
-    "attendance": 80.0
-  }'
-```
-
-**Response (`400 Bad Request`):**
-```json
-{
-  "timestamp": "2026-09-20 13:40:00",
-  "status": 400,
-  "error": "Validation Error",
-  "message": "Invalid request data provided",
-  "details": [
-    "marks: Marks cannot exceed 100"
-  ]
-}
-```
-
----
-
-## 🎓 College Placement Interview Talking Points
-
-When presenting this project in an interview or viva:
-
-1. **Why 3-Tier Architecture?**
-   - Clean separation of concerns: `Controller` handles HTTP routing and input validation; `Service` handles business logic and analytics; `Repository` manages database interactions via Spring Data JPA.
-2. **Why JPA/Hibernate?**
-   - Object-Relational Mapping (ORM) abstracts raw SQL queries, provides entity relationship mapping (`@OneToMany`, `@ManyToOne`), and automatically updates database schema safely.
-3. **How does the AI Recommendation work?**
-   - EduPulse calculates deterministic analytics first (average marks, attendance, weak subjects, risk tier) and sends this structured context to Gemini AI via a curated prompt. This avoids AI hallucination while producing hyper-personalized advice.
-4. **How did you achieve Fault Tolerance?**
-   - The application does not crash if the Gemini API key is missing or invalid. It falls back to a deterministic rule-based engine, ensuring student and performance CRUD APIs remain completely operational.
-5. **How is input validation handled?**
-   - Using Jakarta Bean Validation annotations (`@NotBlank`, `@Email`, `@Min`, `@Max`) combined with a `@RestControllerAdvice` global exception handler that returns clean, user-friendly JSON error payloads.
-
----
-
-## 🔮 Future Enhancements
-- **Teacher / Student Role Portals**: Add Spring Security with JWT for role-based authentication.
-- **Interactive Dashboard**: Build a lightweight React or Thymeleaf UI to visualize student performance charts.
-- **Automated Email Alerts**: Send automated email notifications to students placed in the `HIGH` risk bracket.
-- **Batch CSV Import**: Allow bulk uploading of student semester grades via CSV.
+Distributed under the **MIT License**. Free for educational, academic, and non-commercial development.
