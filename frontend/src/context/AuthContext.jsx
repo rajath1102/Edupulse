@@ -36,9 +36,13 @@ export function AuthProvider({ children }) {
         }
       }
 
-      // Default to teacher demo account on first load for seamless experience
+      // Default to teacher demo account on first load for seamless experience.
+      // Use 3.5s race timeout so a cold-starting backend container never stalls the page load.
       try {
-        await quickLogin('teacher');
+        const coldStartTimeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Backend cold start timeout')), 3500)
+        );
+        await Promise.race([quickLogin('teacher'), coldStartTimeout]);
       } catch (err) {
         console.warn('Initial demo login fallback notice:', err);
         // Set offline teacher session so dashboard immediately displays all students even during cold start!

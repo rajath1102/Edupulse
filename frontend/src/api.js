@@ -50,6 +50,23 @@ export const FALLBACK_PERFORMANCES = {
 };
 
 /**
+ * Lightweight fetch wrapper with AbortController timeout.
+ * Prevents Render cloud cold starts (>60s) from freezing the initial UI load.
+ */
+export async function fetchWithTimeout(resource, options = {}, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(resource, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return res;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
+/**
  * Returns authorization headers with JWT Bearer token if present.
  */
 export function getAuthHeaders(extraHeaders = {}) {
@@ -122,9 +139,9 @@ export async function register(userData) {
 }
 
 export async function getCurrentUser() {
-  const res = await fetch(`${API_BASE}/api/auth/me`, {
+  const res = await fetchWithTimeout(`${API_BASE}/api/auth/me`, {
     headers: getAuthHeaders()
-  });
+  }, 4000);
   return handleResponse(res);
 }
 
@@ -139,9 +156,9 @@ export function logout() {
 
 export async function getAllStudents() {
   try {
-    const res = await fetch(`${API_BASE}/api/students`, {
+    const res = await fetchWithTimeout(`${API_BASE}/api/students`, {
       headers: getAuthHeaders()
-    });
+    }, 4500);
     const data = await handleResponse(res);
     if (Array.isArray(data) && data.length > 0) {
       return data;
@@ -155,9 +172,9 @@ export async function getAllStudents() {
 
 export async function getStudentById(id) {
   try {
-    const res = await fetch(`${API_BASE}/api/students/${id}`, {
+    const res = await fetchWithTimeout(`${API_BASE}/api/students/${id}`, {
       headers: getAuthHeaders()
-    });
+    }, 4500);
     return await handleResponse(res);
   } catch (err) {
     const found = FALLBACK_STUDENTS.find(s => s.id === Number(id));
@@ -198,9 +215,9 @@ export async function deleteStudent(id) {
 
 export async function getPerformanceByStudentId(studentId) {
   try {
-    const res = await fetch(`${API_BASE}/api/performance/student/${studentId}`, {
+    const res = await fetchWithTimeout(`${API_BASE}/api/performance/student/${studentId}`, {
       headers: getAuthHeaders()
-    });
+    }, 4500);
     const data = await handleResponse(res);
     if (Array.isArray(data) && data.length > 0) {
       return data;
@@ -227,9 +244,9 @@ export async function addPerformance(studentId, performanceData) {
 
 export async function getStudentAnalysis(studentId) {
   try {
-    const res = await fetch(`${API_BASE}/api/analysis/student/${studentId}`, {
+    const res = await fetchWithTimeout(`${API_BASE}/api/analysis/student/${studentId}`, {
       headers: getAuthHeaders()
-    });
+    }, 4500);
     return await handleResponse(res);
   } catch (err) {
     console.warn(`API getStudentAnalysis notice for student ${studentId}:`, err.message);
