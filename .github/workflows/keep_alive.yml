@@ -1,0 +1,16 @@
+name: Keep Backend Warm
+
+on:
+  schedule:
+    # Runs every 12 minutes to prevent Render free instance from hibernating
+    - cron: '*/12 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          curl -sS --max-time 30 https://edupulse-1-2ssh.onrender.com/api/students > /dev/null || true
+          echo "Render ping completed at $(date)"
