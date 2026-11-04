@@ -276,7 +276,7 @@ export default function SyllabusRagPage() {
         answer: `### 📚 Grounded Answer: ${docName}\n\n**Question:** ${q}\n**Course/Subject:** ${querySubject}\n\nBased on your uploaded course notes:\n\n* **Unit & Module Focus:** The uploaded material covers the core topics of **${querySubject}**.\n* **Key Concepts:** For examination preparation on this topic, review the specific definitions, circuit/architectural diagrams, and analytical derivations outlined in this module.\n* **Exam Tips:** In semester examinations, questions on this topic are frequently set as **10-mark descriptive problems** or **2-mark conceptual questions**.`,
         citations: [`${docName} (Module Overview)`],
         chunksUsed: [],
-        aiSource: 'EduPulse Semantic RAG Engine'
+        aiSource: 'EduPulse Academic AI Engine'
       });
       setQuestion(q);
     } finally {
@@ -314,7 +314,7 @@ export default function SyllabusRagPage() {
           <button
             onClick={() => loadDemoSample(true)}
             style={{
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
               color: '#fff',
               border: 'none',
               padding: '8px 14px',
@@ -325,10 +325,10 @@ export default function SyllabusRagPage() {
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+              boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)'
             }}
           >
-            <Sparkles size={15} /> ⚡ 1-Click VTU DBMS Demo
+            <Sparkles size={15} /> ✨ Try Sample Syllabus
           </button>
           <span style={{ 
             background: 'rgba(16, 185, 129, 0.1)', 
@@ -341,7 +341,7 @@ export default function SyllabusRagPage() {
             alignItems: 'center', 
             gap: '6px' 
           }}>
-            <Sparkles size={14} /> Semantic RAG Active
+            <Sparkles size={14} /> Grounded Citations Ready
           </span>
         </div>
       </div>
@@ -374,7 +374,7 @@ export default function SyllabusRagPage() {
                   gap: '4px'
                 }}
               >
-                ⚡ Fill VTU Sample
+                ✨ Load Sample Content
               </button>
             </div>
 
@@ -528,7 +528,7 @@ export default function SyllabusRagPage() {
                   <>Processing & Chunking Semantic Index...</>
                 ) : (
                   <>
-                    <Upload size={16} /> Index Document into RAG
+                    <Upload size={16} /> Index Document into Knowledge Base
                   </>
                 )}
               </button>

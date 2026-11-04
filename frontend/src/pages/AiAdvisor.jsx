@@ -42,8 +42,8 @@ export default function AiAdvisor({ students, selectedStudentId, onSelectStudent
   return (
     <div className="ai-advisor-page">
       <div className="section-header">
-        <h2>✦ AI Personalized Study Plan Advisor</h2>
-        <p>AI-driven academic guidance powered by Google Gemini with rule-based fallback</p>
+        <h2>✦ Personalized AI Study Plan Advisor</h2>
+        <p>Adaptive academic guidance tailored to your performance profile and upcoming exams</p>
       </div>
 
       <div className="panel-grid">
@@ -65,7 +65,7 @@ export default function AiAdvisor({ students, selectedStudentId, onSelectStudent
                         background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0',
                         borderRadius: '100px', display: 'inline-flex', alignItems: 'center', gap: '4px'
                       }}>
-                        🔒 Privacy Active
+                        🔒 Student Profile Active
                       </span>
                     </div>
                     <div className="student-mini-card visible">
@@ -149,7 +149,7 @@ export default function AiAdvisor({ students, selectedStudentId, onSelectStudent
             <h3><Lightbulb size={16} /> Generated AI Recommendations</h3>
             {recommendation && (
               <span className="ai-source-badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderColor: '#c7d2fe' }}>
-                Source: {recommendation.aiSource || 'AI Engine'}
+                {recommendation.aiSource || 'AI Engine'}
               </span>
             )}
           </div>
@@ -197,13 +197,13 @@ export default function AiAdvisor({ students, selectedStudentId, onSelectStudent
                   background: 'var(--bg)',
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.8rem',
+                  fontSize: '0.825rem',
                   color: 'var(--text-secondary)'
                 }}>
-                  <strong style={{ color: 'var(--text-primary)' }}>💡 How this works:</strong>
+                  <strong style={{ color: 'var(--text-primary)' }}>💡 How this study plan is created:</strong>
                   <ul style={{ paddingLeft: '20px', marginTop: '6px', lineHeight: '1.6' }}>
-                    <li>When <code>GEMINI_API_KEY</code> is set in Spring Boot environment variables, real-time Gemini AI is queried.</li>
-                    <li>If the API key is not yet set or external connectivity fails, EduPulse automatically applies the intelligent rule-based academic engine.</li>
+                    <li>EduPulse analyzes historical exam scores, attendance patterns, and curriculum weightage to customize this roadmap.</li>
+                    <li>Focuses on weak concepts first, balances daily study hours, and provides actionable revision checklists for maximum score gain.</li>
                   </ul>
                 </div>
               </div>

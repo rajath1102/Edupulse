@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { X, Lock, User, Mail, BookOpen, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -102,7 +102,7 @@ export default function LoginModal({ isOpen, onClose }) {
               {isRegister ? 'Create Student Account' : 'Sign in to EduPulse'}
             </h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              {isRegister ? 'Register as a student to track your progress' : 'Secure JWT Authentication'}
+              {isRegister ? 'Register as a student to track your progress' : 'Institutional Portal Access'}
             </p>
           </div>
           <button
@@ -129,7 +129,7 @@ export default function LoginModal({ isOpen, onClose }) {
             border: '1px solid var(--border)'
           }}>
             <div style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-              Quick 1-Click Demo Logins:
+              Explore Portal as:
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
               <button

@@ -24,22 +24,22 @@ export default function Sidebar({ currentSection, onSelectSection, onOpenLoginMo
   const navItems = isStudent ? [
     { id: 'dashboard', label: 'My Dashboard', icon: LayoutDashboard },
     { id: 'edubot', label: 'EduBot AI Tutor', icon: Bot },
-    { id: 'syllabus-rag', label: 'Syllabus RAG Tutor', icon: Layers },
-    { id: 'mock-exam', label: 'Mock Exam & AI Grader', icon: FileText },
+    { id: 'syllabus-rag', label: 'Course Notes Tutor', icon: Layers },
+    { id: 'mock-exam', label: 'Mock Exam & Grader', icon: FileText },
     { id: 'students', label: 'My Academic Profile', icon: Users },
     { id: 'analytics', label: 'My Analytics', icon: BarChart3 },
     { id: 'ai-advisor', label: 'My AI Study Plan', icon: Sparkles },
-    { id: 'settings', label: 'Settings & Cloud', icon: Settings },
+    { id: 'settings', label: 'Platform Settings', icon: Settings },
   ] : [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'edubot', label: 'EduBot AI Tutor', icon: Bot },
-    { id: 'syllabus-rag', label: 'Syllabus RAG Tutor', icon: Layers },
-    { id: 'mock-exam', label: 'Mock Exam & AI Grader', icon: FileText },
+    { id: 'syllabus-rag', label: 'Course Notes Tutor', icon: Layers },
+    { id: 'mock-exam', label: 'Mock Exam & Grader', icon: FileText },
     { id: 'students', label: 'All Students', icon: Users },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'ai-scanner', label: 'AI Exam Scanner', icon: Scan },
     { id: 'ai-advisor', label: 'AI Study Advisor', icon: Sparkles },
-    { id: 'settings', label: 'Settings & Cloud', icon: Settings },
+    { id: 'settings', label: 'Platform Settings', icon: Settings },
   ];
 
   const roleName = role ? role.replace('ROLE_', '') : 'GUEST';
@@ -161,9 +161,9 @@ export default function Sidebar({ currentSection, onSelectSection, onOpenLoginMo
       </div>
 
       <div className="sidebar-footer">
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="status-dot"></span>
-          <span>Cloud Intelligence Active</span>
+          <span style={{ fontWeight: '500' }}>EduPulse Platform • Ready</span>
         </div>
       </div>
     </aside>

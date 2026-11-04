@@ -216,7 +216,7 @@ export default function MockExamPage() {
               boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
             }}
           >
-            <Sparkles size={15} /> ⚡ 1-Click Demo Exam (50M)
+            <Sparkles size={15} /> ✨ Try Sample Paper (50M)
           </button>
 
           {examData && (
@@ -290,7 +290,7 @@ export default function MockExamPage() {
                   gap: '4px'
                 }}
               >
-                ⚡ Load Sample
+                ✨ Pre-fill Example
               </button>
             </div>
 
@@ -550,7 +550,7 @@ export default function MockExamPage() {
                     boxShadow: '0 2px 10px rgba(234, 88, 12, 0.3)'
                   }}
                 >
-                  <Sparkles size={16} /> ⚡ 1-Click Demo Paper (Section A & B + Rubrics)
+                  <Sparkles size={16} /> ✨ View Sample Question Paper (Sections A & B)
                 </button>
                 <button
                   onClick={() => handleGenerate()}
